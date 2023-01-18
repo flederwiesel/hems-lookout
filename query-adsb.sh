@@ -28,7 +28,7 @@ curl -sS https://adsbexchange-com1.p.rapidapi.com/v2/lat/$lat/lon/$lon/dist/$rad
 
 # Filter HEMS by squawk 0020/0034 and regex.
 # For compatibility, prepend format description
-regex="^(AIRESC|C|CH(R|XE?)|DOC|DRAGO|KR|LIFELN|MEDIC|NHX|RESQ|RGA|RK|SA(MU|REX))[0-9]+[A-Z]* *"
+regex="^(AIRESC|C|CH(R|XE?)|DOC|DRAGO|KR|LAS|LIFELN|MEDIC|NHX|RESQ|RGA|RK|SA(MU|REX))[0-9]+[A-Z]* *"
 
 jq '{
 "time": '$(date +%s)',
