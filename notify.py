@@ -144,7 +144,9 @@ if __name__ == "__main__":
                                             if d < MAX_DISTANCE:
                                                 params = formatFlightParams(alt, vrate, d, speed)
 
-                                                message = f"{re.sub(' *$', '', callsign)} {reg}\n" \
+                                                callsign = re.sub(" *$", " ", callsign) if callsign else ""
+
+                                                message = f"{callsign}{reg}\n" \
                                                     f"{location}\n" \
                                                     f"{params}\n" \
                                                     f"https://globe.adsbexchange.com/?icao={icao}"
