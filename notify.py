@@ -158,7 +158,7 @@ if __name__ == "__main__":
                                                             "signal-cli", "send", "-m", message, phone
                                                         ],
                                                         stdout=subprocess.DEVNULL,
-                                                        timeout=10
+                                                        timeout=15
                                                     )
         except Exception as e:
             print(e, file=sys.stderr)
