@@ -160,6 +160,8 @@ if __name__ == "__main__":
                                                         stdout=subprocess.DEVNULL,
                                                         timeout=15
                                                     )
+        except FileNotFoundError as e:
+            print(e, file=sys.stderr)
         except Exception as e:
             print(e, file=sys.stderr)
 
