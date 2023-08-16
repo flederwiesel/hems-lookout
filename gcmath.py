@@ -9,7 +9,7 @@
 import math
 from dataclasses import dataclass
 
-EARTH_RADIUS = 6371.000785 # [km] as of GRS-80
+EARTH_RADIUS = 6371.000785  # [km] as of GRS-80
 
 
 def isclose(a: float, b: float) -> bool:
@@ -20,7 +20,7 @@ def isclose(a: float, b: float) -> bool:
     return math.isclose(a, b, abs_tol=1e-9)
 
 
-def deg_to_km(d: float, lat: float=0.0) -> float:
+def deg_to_km(d: float, lat: float = 0.0) -> float:
     """Convert decimal degrees to km, travelling on a WGS-84 surface"""
     if not isclose(lat, 0.0):
         d *= math.cos(math.radians(lat))
@@ -41,6 +41,7 @@ def km_to_rad(d: float) -> float:
 @dataclass
 class LatLon:
     """A simple class holding latitude/longitude"""
+
     def __init__(self, lat, lon):
         self.lat = lat
         self.lon = lon
@@ -67,7 +68,7 @@ def bearing(src: LatLon, dst: LatLon) -> float:
         b = math.degrees(
             math.atan2(
                 math.sin(delta),
-                math.cos(slat) * math.tan(dlat) - math.sin(slat) * math.cos(delta)
+                math.cos(slat) * math.tan(dlat) - math.sin(slat) * math.cos(delta),
             )
         )
 
@@ -86,7 +87,9 @@ def distance(src: LatLon, dst: LatLon) -> float:
 
     return c * EARTH_RADIUS
 
+
 # pylint: disable=too-many-nested-blocks,too-many-branches,too-many-statements
+
 
 def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
     """
@@ -104,11 +107,9 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
     pos = LatLon(origin.lat, origin.lon)
 
     if not isclose(dist, 0.0):
-
         dist = km_to_rad(dist)
 
         if isclose(bear, 0.0) or isclose(bear, 180.0):
-
             dist = math.degrees(dist)
 
             while dist > 360.0:
@@ -145,7 +146,6 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
                             pos.lon += 180.0
 
         elif isclose(bear, 90.0) or isclose(bear, 270.0):
-
             pos.lat = origin.lat
 
             if isclose(origin.lat, 90.0) or isclose(origin.lat, -90.0):
@@ -168,12 +168,11 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
                 while pos.lon > 180.0:
                     pos.lon -= 360.0
         else:
-
             b = math.radians(90.0 - origin.lat)
             a = math.acos(
-                    math.cos(b) * math.cos(dist) +
-                    math.sin(b) * math.sin(dist) * math.cos(math.radians(bear))
-                )
+                math.cos(b) * math.cos(dist)
+                + math.sin(b) * math.sin(dist) * math.cos(math.radians(bear))
+            )
             q = math.sin(a) * math.sin(b)
 
             if isclose(q, 0.0):
@@ -182,8 +181,11 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
             C = math.acos((math.cos(dist) - math.cos(a) * math.cos(b)) / q)
 
             pos.lat = 90.0 - math.degrees(a)
-            pos.lon = (origin.lon - math.degrees(C) if bear > 180.0 else
-                       origin.lon + math.degrees(C))
+            pos.lon = (
+                origin.lon - math.degrees(C)
+                if bear > 180.0
+                else origin.lon + math.degrees(C)
+            )
 
             while pos.lon <= -180.0:
                 pos.lon += 360.0
