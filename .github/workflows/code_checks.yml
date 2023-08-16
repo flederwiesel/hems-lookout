@@ -1,0 +1,47 @@
+name: code checks
+
+on:
+  pull_request:
+  push:
+    branches:
+    - 'master'
+    - 'feature/**'
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+jobs:
+  code_checks:
+
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-22.04, windows-latest ]
+        python-version: ["3.9", "3.10", "3.11"]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install black pytest
+      - name: Install dependencies
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Install dependencies
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          if exist requirements.txt pip install -r requirements.txt
+      - name: Lint with black
+        run: |
+          python -m black --check gcmath.py
+      - name: Test with pytest
+        run: |
+          python -m pytest
