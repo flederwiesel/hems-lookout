@@ -17,7 +17,7 @@ from gcmath import (
 TRACK_DEVIATION = 5 # degrees
 MAX_DISTANCE = 70 # km
 
-def getUserLocations(path):
+def getUserSettings(path):
     try:
         with open(path, "r") as file:
             return json.load(file)
@@ -66,6 +66,8 @@ def formatFlightParams(alt: float,
     return result
 
 if __name__ == "__main__":
+    user_settings = getUserSettings(os.path.dirname(__file__) + "/notify.json")
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-c", "--stdout", action='store_true')
@@ -74,51 +76,48 @@ if __name__ == "__main__":
 
     for file in leftover:
         try:
-            notifications = getUserLocations(os.path.dirname(__file__) + "/notify.json")
+            with open(file, 'r') as f:
+                j = json.load(f)
 
-            if notifications:
-                with open(file, 'r') as f:
-                    j = json.load(f)
+                for s in j["states"]:
+                    icao, callsign, reg, squawk, lat, lon, alt, vrate, track, speed = s
 
-                    for s in j["states"]:
-                        icao, callsign, reg, squawk, lat, lon, alt, vrate, track, speed = s
+                    if track is not None:
+                        if alt is None:
+                            alt = "unknown"
 
-                        if track is not None:
-                            if alt is None:
-                                alt = "unknown"
+                        if alt != "ground":
 
-                            if alt != "ground":
+                            for user in user_settings:
+                                receipient, locations = user["phone"], user["locations"]
 
-                                for n in notifications:
-                                    phone, locations = n["phone"], n["locations"]
+                                for l in locations:
+                                    location, pos = l["name"], LatLon(l["lat"], l["lon"])
 
-                                    for l in locations:
-                                        location, pos = l["name"], LatLon(l["lat"], l["lon"])
+                                    b = bearing(LatLon(lat, lon), pos)
 
-                                        b = bearing(LatLon(lat, lon), pos)
+                                    if abs(b - track) <= TRACK_DEVIATION:
+                                        d = distance(LatLon(lat, lon), pos)
 
-                                        if abs(b - track) <= TRACK_DEVIATION:
-                                            d = distance(LatLon(lat, lon), pos)
+                                        if d < MAX_DISTANCE:
+                                            params = formatFlightParams(alt, vrate, d, speed)
 
-                                            if d < MAX_DISTANCE:
-                                                params = formatFlightParams(alt, vrate, d, speed)
+                                            callsign = re.sub(" *$", " ", callsign) if callsign else ""
 
-                                                callsign = re.sub(" *$", " ", callsign) if callsign else ""
+                                            message = f"{callsign}{reg}\n" \
+                                                f"{location}\n" \
+                                                f"{params}\n" \
+                                                f"https://globe.adsbexchange.com/?icao={icao}"
 
-                                                message = f"{callsign}{reg}\n" \
-                                                    f"{location}\n" \
-                                                    f"{params}\n" \
-                                                    f"https://globe.adsbexchange.com/?icao={icao}"
-
-                                                if args.stdout:
-                                                    print(f"{message}\n")
-                                                else:
-                                                    subprocess.call([
-                                                            "signal-cli", "send", "-m", message, phone
-                                                        ],
-                                                        stdout=subprocess.DEVNULL,
-                                                        timeout=15
-                                                    )
+                                            if args.stdout:
+                                                print(f"{message}\n")
+                                            else:
+                                                subprocess.call([
+                                                        "signal-cli", "send", "-m", message, receipient
+                                                    ],
+                                                    stdout=subprocess.DEVNULL,
+                                                    timeout=15
+                                                )
         except FileNotFoundError as e:
             print(e, file=sys.stderr)
         except Exception as e:
