@@ -20,9 +20,7 @@ MAX_DISTANCE = 70 # km
 def getUserLocations(path):
     try:
         with open(path, "r") as file:
-            j = json.load(file)
-
-            return j["notifications"]
+            return json.load(file)
     except FileNotFoundError:
         pass # for now...
     except Exception as e:

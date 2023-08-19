@@ -1,14 +1,12 @@
-{
-    "notifications": [
-        {
-            "phone": "+49***********",
-            "locations": [
-                {
-                    "name": "BGU Ludwigshafen",
-                    "lat": 49.4865268,
-                    "lon": 8.3892466
-                }
-            ]
-        }
-    ]
-}
+[
+    {
+        "phone": "+49***********",
+        "locations": [
+            {
+                "name": "",
+                "lat": 49.4865268,
+                "lon": 8.3892466
+            }
+        ]
+    }
+]
