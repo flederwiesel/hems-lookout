@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""Given ADS-B data, send notifications to users if a HEMS is heading
+towards one of the user defined destinations within a certain distance.
+"""
+
 import argparse
 import sys
 import os
@@ -17,18 +21,20 @@ MAX_DISTANCE = 70  # km
 
 
 def get_user_settings(path):
+    """Return user settings from JSON file"""
     try:
         with open(path, "r", encoding="utf-8") as settings:
             return json.load(settings)
     except FileNotFoundError:
         pass  # for now...
-    except Exception as ex:
-        print(ex, file=sys.stderr)
+    except json.JSONDecodeError as ex:
+        print(f"{ex}:\n{settings}", file=sys.stderr)
 
     return []
 
 
 def format_flight_params(alt: float, vrate: float, distance: float, speed: float):
+    """Format flight parameters for the notification to be sent"""
     if int == type(alt):
         result = f"alt {float(alt) * 0.3048:.0f}m"
     elif float == type(alt):
@@ -65,6 +71,68 @@ def format_flight_params(alt: float, vrate: float, distance: float, speed: float
     return result
 
 
+def get_notifications(
+    data: list[list], settings: list[dict]
+) -> list[dict]:
+    """Iterate over adsb data to determine whether HEMS are heading towards
+    user locations by calculating bearing and distance for each combination.
+    Return a list of notifications"""
+
+    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-nested-blocks
+
+    notifications = []
+
+    try:
+        for state in data:
+            # squawk is currently not needed, -> _
+            icao, callsign, reg, _, lat, lon, alt, vrate, track, speed = state
+
+            if track is not None:
+                if alt is None:
+                    alt = "unknown"
+
+                if alt != "ground":
+                    for user in settings:
+                        receipient, locations = user["phone"], user["locations"]
+
+                        for loc in locations:
+                            location, pos = loc["name"], LatLon(loc["lat"], loc["lon"])
+
+                            bearing = calc_bearing(LatLon(lat, lon), pos)
+
+                            if abs(bearing - track) <= TRACK_DEVIATION:
+                                dist = calc_distance(LatLon(lat, lon), pos)
+
+                                if dist < MAX_DISTANCE:
+                                    params = format_flight_params(
+                                        alt, vrate, dist, speed
+                                    )
+
+                                    callsign = (
+                                        re.sub(" *$", " ", callsign) if callsign else ""
+                                    )
+
+                                    message = (
+                                        f"{callsign}{reg}\n"
+                                        f"{location}\n"
+                                        f"{params}\n"
+                                        f"https://globe.adsbexchange.com/?icao={icao}"
+                                    )
+
+                                    notifications.append(
+                                        {
+                                            "receipient": receipient,
+                                            "message": message,
+                                        }
+                                    )
+
+    except json.JSONDecodeError as ex:
+        print(f"{ex}:\n{data}", file=sys.stderr)
+
+    return notifications
+
+
 if __name__ == "__main__":
     user_settings = get_user_settings(os.path.dirname(__file__) + "/notify.json")
 
@@ -78,75 +146,18 @@ if __name__ == "__main__":
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 adsb = json.load(file)
+                user_notifications = get_notifications(adsb["states"], user_settings)
 
-                for state in adsb["states"]:
-                    (
-                        icao,
-                        callsign,
-                        reg,
-                        squawk,
-                        lat,
-                        lon,
-                        alt,
-                        vrate,
-                        track,
-                        speed,
-                    ) = state
+                if args.stdout:
+                    for n in user_notifications:
+                        print(f"*** {n['receipient']} ***\n[{n['message']}]\n")
+                else:
+                    for n in user_notifications:
+                        subprocess.call(
+                            ["signal-cli", "send", "-m", n["message"], n["receipient"]],
+                            stdout=subprocess.DEVNULL,
+                            timeout=15,
+                        )
 
-                    if track is not None:
-                        if alt is None:
-                            alt = "unknown"
-
-                        if alt != "ground":
-                            for user in user_settings:
-                                receipient, locations = user["phone"], user["locations"]
-
-                                for loc in locations:
-                                    location, pos = loc["name"], LatLon(
-                                        loc["lat"], loc["lon"]
-                                    )
-
-                                    bearing = calc_bearing(LatLon(lat, lon), pos)
-
-                                    if abs(bearing - track) <= TRACK_DEVIATION:
-                                        dist = calc_distance(LatLon(lat, lon), pos)
-
-                                        if dist < MAX_DISTANCE:
-                                            params = format_flight_params(
-                                                alt, vrate, dist, speed
-                                            )
-
-                                            callsign = (
-                                                re.sub(" *$", " ", callsign)
-                                                if callsign
-                                                else ""
-                                            )
-
-                                            message = (
-                                                f"{callsign}{reg}\n"
-                                                f"{location}\n"
-                                                f"{params}\n"
-                                                f"https://globe.adsbexchange.com/?icao={icao}"
-                                            )
-
-                                            if args.stdout:
-                                                print(f"{message}\n")
-                                            else:
-                                                subprocess.call(
-                                                    [
-                                                        "signal-cli",
-                                                        "send",
-                                                        "-m",
-                                                        message,
-                                                        receipient,
-                                                    ],
-                                                    stdout=subprocess.DEVNULL,
-                                                    timeout=15,
-                                                )
         except FileNotFoundError as exception:
-            print(exception, file=sys.stderr)
-        except Exception as exception:
-            print(exception, file=sys.stderr)
-
-            if adsb:
-                print(adsb, file=sys.stderr)
+            print(f"{exception}:\n{filename}", file=sys.stderr)
