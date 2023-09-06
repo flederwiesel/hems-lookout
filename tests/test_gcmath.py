@@ -3,8 +3,8 @@
 import math
 from gcmath import (
     LatLon,
-    bearing,
-    distance,
+    calc_bearing,
+    calc_distance,
     travel,
     isclose,
     deg_to_km,
@@ -312,210 +312,210 @@ def test_travel_east():
 
 def test_travel_1_Q1_Q2():
     # Q1 -> Q2
-    assert(isclose(bearing(LatLon(30.0, 30.0), LatLon(-30.0, 15.0)), 194.7514449152269))
-    assert(isclose(distance(LatLon(30.0, 30.0), LatLon(-30.0, 15.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(30.0, 30.0), LatLon(-30.0, 15.0)), 194.7514449152269))
+    assert(isclose(calc_distance(LatLon(30.0, 30.0), LatLon(-30.0, 15.0)), 6858.150413856773))
     assert(travel(LatLon(30.0, 30.0), 6858.150413856773, 194.7514449152269) == LatLon(-30.0, 15.0))
 
 def test_travel_1_Q1_Q3():
     # Q1 -> Q3
-    assert(isclose(bearing(LatLon(30.0, 30.0), LatLon(-30.0, -15.0)), 219.63927223775613))
-    assert(isclose(distance(LatLon(30.0, 30.0), LatLon(-30.0, -15.0)), 8197.30142711796))
+    assert(isclose(calc_bearing(LatLon(30.0, 30.0), LatLon(-30.0, -15.0)), 219.63927223775613))
+    assert(isclose(calc_distance(LatLon(30.0, 30.0), LatLon(-30.0, -15.0)), 8197.30142711796))
     assert(travel(LatLon(30.0, 30.0), 8197.30142711796, 219.63927223775613) == LatLon(-30.0, -15.0))
 
 def test_travel_1_Q1_Q4():
     # Q1 -> Q4
-    assert(isclose(bearing(LatLon(30.0, 30.0), LatLon(-15.0, -15.0)), 230.36948571096076))
-    assert(isclose(distance(LatLon(30.0, 30.0), LatLon(-15.0, -15.0)), 6947.182442673351))
+    assert(isclose(calc_bearing(LatLon(30.0, 30.0), LatLon(-15.0, -15.0)), 230.36948571096076))
+    assert(isclose(calc_distance(LatLon(30.0, 30.0), LatLon(-15.0, -15.0)), 6947.182442673351))
     assert(travel(LatLon(30.0, 30.0), 6947.182442673351, 230.36948571096076) == LatLon(-15.0, -15.0))
 
 def test_travel_1_Q2_Q1():
     # Q2 -> Q1
-    assert(isclose(bearing(LatLon(-30.0, 30.0), LatLon(30.0, 15.0)), 345.2485550847731))
-    assert(isclose(distance(LatLon(-30.0, 30.0), LatLon(30.0, 15.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(-30.0, 30.0), LatLon(30.0, 15.0)), 345.2485550847731))
+    assert(isclose(calc_distance(LatLon(-30.0, 30.0), LatLon(30.0, 15.0)), 6858.150413856773))
     assert(travel(LatLon(-30.0, 30.0), 6858.150413856773, 345.2485550847731) == LatLon(30.0, 15.0))
 
 def test_travel_1_Q2_Q3():
     # Q2 -> Q3
-    assert(isclose(bearing(LatLon(-30.0, 30.0), LatLon(-15.0, -15.0)), 279.74995402797686))
-    assert(isclose(distance(LatLon(-30.0, 30.0), LatLon(-15.0, -15.0)), 4878.105519870221))
+    assert(isclose(calc_bearing(LatLon(-30.0, 30.0), LatLon(-15.0, -15.0)), 279.74995402797686))
+    assert(isclose(calc_distance(LatLon(-30.0, 30.0), LatLon(-15.0, -15.0)), 4878.105519870221))
     assert(travel(LatLon(-30.0, 30.0), 4878.105519870221, 279.74995402797686) == LatLon(-15.0, -15.0))
 
 def test_travel_1_Q2_Q4():
     # Q2 -> Q4
-    assert(isclose(bearing(LatLon(-30.0, 30.0), LatLon(30.0, -15.0)), 320.36072776224387))
-    assert(isclose(distance(LatLon(-30.0, 30.0), LatLon(30.0, -15.0)), 8197.30142711796))
+    assert(isclose(calc_bearing(LatLon(-30.0, 30.0), LatLon(30.0, -15.0)), 320.36072776224387))
+    assert(isclose(calc_distance(LatLon(-30.0, 30.0), LatLon(30.0, -15.0)), 8197.30142711796))
     assert(travel(LatLon(-30.0, 30.0), 8197.30142711796, 320.36072776224387) == LatLon(30.0, -15.0))
 
 def test_travel_1_Q3_Q1():
     # Q3 -> Q1
-    assert(isclose(bearing(LatLon(-30.0, -30.0), LatLon(30.0, 15.0)), 39.63927223775613))
-    assert(isclose(distance(LatLon(-30.0, -30.0), LatLon(30.0, 15.0)), 8197.30142711796))
+    assert(isclose(calc_bearing(LatLon(-30.0, -30.0), LatLon(30.0, 15.0)), 39.63927223775613))
+    assert(isclose(calc_distance(LatLon(-30.0, -30.0), LatLon(30.0, 15.0)), 8197.30142711796))
     assert(travel(LatLon(-30.0, -30.0), 8197.30142711796, 39.63927223775613) == LatLon(30.0, 15.0))
 
 def test_travel_1_Q3_Q2():
     # Q3 -> Q2
-    assert(isclose(bearing(LatLon(-30.0, -30.0), LatLon(-15.0, -15.0)), 45.88869972297674))
-    assert(isclose(distance(LatLon(-30.0, -30.0), LatLon(-15.0, -15.0)), 2265.8122607469577))
+    assert(isclose(calc_bearing(LatLon(-30.0, -30.0), LatLon(-15.0, -15.0)), 45.88869972297674))
+    assert(isclose(calc_distance(LatLon(-30.0, -30.0), LatLon(-15.0, -15.0)), 2265.8122607469577))
     assert(travel(LatLon(-30.0, -30.0), 2265.8122607469577, 45.88869972297674) == LatLon(-15.0, -15.0))
 
 def test_travel_1_Q3_Q4():
     # Q3 -> Q4
-    assert(isclose(bearing(LatLon(-30.0, -30.0), LatLon(30.0, -15.0)), 14.751444915226907))
-    assert(isclose(distance(LatLon(-30.0, -30.0), LatLon(30.0, -15.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(-30.0, -30.0), LatLon(30.0, -15.0)), 14.751444915226907))
+    assert(isclose(calc_distance(LatLon(-30.0, -30.0), LatLon(30.0, -15.0)), 6858.150413856773))
     assert(travel(LatLon(-30.0, -30.0), 6858.150413856773, 14.751444915226907) == LatLon(30.0, -15.0))
 
 def test_travel_1_Q4_Q1():
     # Q4 -> Q1
-    assert(isclose(bearing(LatLon(30.0, -30.0), LatLon(15.0, 15.0)), 99.74995402797683))
-    assert(isclose(distance(LatLon(30.0, -30.0), LatLon(15.0, 15.0)), 4878.105519870221))
+    assert(isclose(calc_bearing(LatLon(30.0, -30.0), LatLon(15.0, 15.0)), 99.74995402797683))
+    assert(isclose(calc_distance(LatLon(30.0, -30.0), LatLon(15.0, 15.0)), 4878.105519870221))
     assert(travel(LatLon(30.0, -30.0), 4878.105519870221, 99.74995402797683) == LatLon(15.0, 15.0))
 
 def test_travel_1_Q4_Q2():
     # Q4 -> Q2
-    assert(isclose(bearing(LatLon(30.0, -30.0), LatLon(-30.0, 15.0)), 140.36072776224387))
-    assert(isclose(distance(LatLon(30.0, -30.0), LatLon(-30.0, 15.0)), 8197.30142711796))
+    assert(isclose(calc_bearing(LatLon(30.0, -30.0), LatLon(-30.0, 15.0)), 140.36072776224387))
+    assert(isclose(calc_distance(LatLon(30.0, -30.0), LatLon(-30.0, 15.0)), 8197.30142711796))
     assert(travel(LatLon(30.0, -30.0), 8197.30142711796, 140.36072776224387) == LatLon(-30.0, 15.0))
 
 def test_travel_1_Q4_Q3():
     # Q4 -> Q3
-    assert(isclose(bearing(LatLon(30.0, -30.0), LatLon(-30.0, -15.0)), 165.2485550847731))
-    assert(isclose(distance(LatLon(30.0, -30.0), LatLon(-30.0, -15.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(30.0, -30.0), LatLon(-30.0, -15.0)), 165.2485550847731))
+    assert(isclose(calc_distance(LatLon(30.0, -30.0), LatLon(-30.0, -15.0)), 6858.150413856773))
     assert(travel(LatLon(30.0, -30.0), 6858.150413856773, 165.2485550847731) == LatLon(-30.0, -15.0))
 
 ### Cross equator and/or 0-meridian like in 2.pdn
 
 def test_travel_2_Q1_Q2():
     # Q1 -> Q2
-    assert(isclose(bearing(LatLon(30.0, -150.0), LatLon(-30.0, -165.0)), 194.7514449152269))
-    assert(isclose(distance(LatLon(30.0, -150.0), LatLon(-30.0, -165.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(30.0, -150.0), LatLon(-30.0, -165.0)), 194.7514449152269))
+    assert(isclose(calc_distance(LatLon(30.0, -150.0), LatLon(-30.0, -165.0)), 6858.150413856773))
     assert(travel(LatLon(30.0, -150.0), 6858.150413856773, 194.7514449152269) == LatLon(-30.0, -165.0))
 
 def test_travel_2_Q1_Q3():
     # Q1 -> Q3
-    assert(isclose(bearing(LatLon(30.0, -150.0), LatLon(-30.0, 165.0)), 219.63927223775613))
-    assert(isclose(distance(LatLon(30.0, -150.0), LatLon(-30.0, 165.0)), 8197.30142711796))
+    assert(isclose(calc_bearing(LatLon(30.0, -150.0), LatLon(-30.0, 165.0)), 219.63927223775613))
+    assert(isclose(calc_distance(LatLon(30.0, -150.0), LatLon(-30.0, 165.0)), 8197.30142711796))
     assert(travel(LatLon(30.0, -150.0), 8197.30142711796, 219.63927223775613) == LatLon(-30.0, 165.0))
 
 def test_travel_2_Q1_Q4():
     # Q1 -> Q4
-    assert(isclose(bearing(LatLon(30.0, -150.0), LatLon(15.0, 165)), 260.25004597202314))
-    assert(isclose(distance(LatLon(30.0, -150.0), LatLon(15.0, 165)), 4878.1055198702215))
+    assert(isclose(calc_bearing(LatLon(30.0, -150.0), LatLon(15.0, 165)), 260.25004597202314))
+    assert(isclose(calc_distance(LatLon(30.0, -150.0), LatLon(15.0, 165)), 4878.1055198702215))
     assert(travel(LatLon(30.0, -150.0), 4878.1055198702215, 260.25004597202314) == LatLon(15.0, 165))
 
 def test_travel_2_Q2_Q1():
     # Q2 -> Q1
-    assert(isclose(bearing(LatLon(-30.0, -150.0), LatLon(30.0, -165.0)), 345.2485550847731))
-    assert(isclose(distance(LatLon(-30.0, -150.0), LatLon(30.0, -165.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(-30.0, -150.0), LatLon(30.0, -165.0)), 345.2485550847731))
+    assert(isclose(calc_distance(LatLon(-30.0, -150.0), LatLon(30.0, -165.0)), 6858.150413856773))
     assert(travel(LatLon(-30.0, -150.0), 6858.150413856773, 345.2485550847731) == LatLon(30.0, -165.0))
 
 def test_travel_2_Q2_Q3():
     # Q2 -> Q3
-    assert(isclose(bearing(LatLon(-30.0, -150.0), LatLon(-15.0, 165.0)), 279.7499540279768))
-    assert(isclose(distance(LatLon(-30.0, -150.0), LatLon(-15.0, 165.0)), 4878.1055198702215))
+    assert(isclose(calc_bearing(LatLon(-30.0, -150.0), LatLon(-15.0, 165.0)), 279.7499540279768))
+    assert(isclose(calc_distance(LatLon(-30.0, -150.0), LatLon(-15.0, 165.0)), 4878.1055198702215))
     assert(travel(LatLon(-30.0, -150.0), 4878.1055198702215, 279.7499540279768) == LatLon(-15.0, 165.0))
 
 def test_travel_2_Q2_Q4():
     # Q2 -> Q4
-    assert(isclose(bearing(LatLon(-30.0, -150.0), LatLon(15.0, 165.0)), 309.63051428903924))
-    assert(isclose(distance(LatLon(-30.0, -150.0), LatLon(15.0, 165.0)), 6947.182442673351))
+    assert(isclose(calc_bearing(LatLon(-30.0, -150.0), LatLon(15.0, 165.0)), 309.63051428903924))
+    assert(isclose(calc_distance(LatLon(-30.0, -150.0), LatLon(15.0, 165.0)), 6947.182442673351))
     assert(travel(LatLon(-30.0, -150.0), 6947.182442673351, 309.63051428903924) == LatLon(15.0, 165.0))
 
 def test_travel_2_Q3_Q1():
     # Q3 -> Q1
-    assert(isclose(bearing(LatLon(-30.0, 150.0), LatLon(30.0, -165.0)), 39.639272237756146))
-    assert(isclose(distance(LatLon(-30.0, 150.0), LatLon(30.0, -165.0)), 8197.30142711796))
+    assert(isclose(calc_bearing(LatLon(-30.0, 150.0), LatLon(30.0, -165.0)), 39.639272237756146))
+    assert(isclose(calc_distance(LatLon(-30.0, 150.0), LatLon(30.0, -165.0)), 8197.30142711796))
     assert(travel(LatLon(-30.0, 150.0), 8197.30142711796, 39.639272237756146) == LatLon(30.0, -165.0))
 
 def test_travel_2_Q3_Q2():
     # Q3 -> Q2
-    assert(isclose(bearing(LatLon(-30.0, 150.0), LatLon(-15.0, -165.0)), 80.25004597202319))
-    assert(isclose(distance(LatLon(-30.0, 150.0), LatLon(-15.0, -165.0)), 4878.1055198702215))
+    assert(isclose(calc_bearing(LatLon(-30.0, 150.0), LatLon(-15.0, -165.0)), 80.25004597202319))
+    assert(isclose(calc_distance(LatLon(-30.0, 150.0), LatLon(-15.0, -165.0)), 4878.1055198702215))
     assert(travel(LatLon(-30.0, 150.0), 4878.1055198702215, 80.25004597202319) == LatLon(-15.0, -165.0))
 
 def test_travel_2_Q3_Q4():
     # Q3 -> Q4
-    assert(isclose(bearing(LatLon(-30.0, 150.0), LatLon(30.0, 165.0)), 14.751444915226907))
-    assert(isclose(distance(LatLon(-30.0, 150.0), LatLon(30.0, 165.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(-30.0, 150.0), LatLon(30.0, 165.0)), 14.751444915226907))
+    assert(isclose(calc_distance(LatLon(-30.0, 150.0), LatLon(30.0, 165.0)), 6858.150413856773))
     assert(travel(LatLon(-30.0, 150.0), 6858.150413856773, 14.751444915226907) == LatLon(30.0, 165.0))
 
 def test_travel_2_Q4_Q1():
     # Q4 -> Q1
-    assert(isclose(bearing(LatLon(30.0, 150.0), LatLon(15.0, 165.0)), 134.11130027702328))
-    assert(isclose(distance(LatLon(30.0, 150.0), LatLon(15.0, 165.0)), 2265.8122607469577))
+    assert(isclose(calc_bearing(LatLon(30.0, 150.0), LatLon(15.0, 165.0)), 134.11130027702328))
+    assert(isclose(calc_distance(LatLon(30.0, 150.0), LatLon(15.0, 165.0)), 2265.8122607469577))
     assert(travel(LatLon(30.0, 150.0), 2265.8122607469577, 134.11130027702328) == LatLon(15.0, 165.0))
 
 def test_travel_2_Q4_Q2():
     # Q4 -> Q2
-    assert(isclose(bearing(LatLon(30.0, 150.0), LatLon(-30.0, -165.0)), 140.36072776224387))
-    assert(isclose(distance(LatLon(30.0, 150.0), LatLon(-30.0, -165.0)), 8197.30142711796))
+    assert(isclose(calc_bearing(LatLon(30.0, 150.0), LatLon(-30.0, -165.0)), 140.36072776224387))
+    assert(isclose(calc_distance(LatLon(30.0, 150.0), LatLon(-30.0, -165.0)), 8197.30142711796))
     assert(travel(LatLon(30.0, 150.0), 8197.30142711796, 140.36072776224387) == LatLon(-30.0, -165.0))
 
 def test_travel_2_Q4_Q3():
     # Q4 -> Q3
-    assert(isclose(bearing(LatLon(30.0, 150.0), LatLon(-30.0, 165.0)), 165.2485550847731))
-    assert(isclose(distance(LatLon(30.0, 150.0), LatLon(-30.0, 165.0)), 6858.150413856773))
+    assert(isclose(calc_bearing(LatLon(30.0, 150.0), LatLon(-30.0, 165.0)), 165.2485550847731))
+    assert(isclose(calc_distance(LatLon(30.0, 150.0), LatLon(-30.0, 165.0)), 6858.150413856773))
     assert(travel(LatLon(30.0, 150.0), 6858.150413856773, 165.2485550847731) == LatLon(-30.0, 165.0))
 
 ### Travel to a point of same latitude, as in 3.pdn
 
 def test_travel_3_A_B():
     # A -> B
-    assert(isclose(bearing(LatLon(60.0, 15.0), LatLon(60.0, -150.0)), 351.35612163513326))
-    assert(isclose(distance(LatLon(60.0, 15.0), LatLon(60.0, -150.0)), 6608.848934146663))
+    assert(isclose(calc_bearing(LatLon(60.0, 15.0), LatLon(60.0, -150.0)), 351.35612163513326))
+    assert(isclose(calc_distance(LatLon(60.0, 15.0), LatLon(60.0, -150.0)), 6608.848934146663))
     assert(travel(LatLon(60.0, 15.0), 6608.848934146663, 351.35612163513326) == LatLon(60.0, -150.0))
 
 def test_travel_3_A_B():
     # A-> C
-    assert(isclose(bearing(LatLon(60.0, 15.0), LatLon(60.0, 150.0)), 25.56144583679776))
-    assert(isclose(distance(LatLon(60.0, 15.0), LatLon(60.0, 150.0)), 6118.467805800631))
+    assert(isclose(calc_bearing(LatLon(60.0, 15.0), LatLon(60.0, 150.0)), 25.56144583679776))
+    assert(isclose(calc_distance(LatLon(60.0, 15.0), LatLon(60.0, 150.0)), 6118.467805800631))
     assert(travel(LatLon(60.0, 15.0), 6118.467805800631, 25.56144583679776) == LatLon(60.0, 150.0))
 
 def test_travel_3_B_C():
     # B -> C
-    assert(isclose(bearing(LatLon(60.0, -150.0), LatLon(60.0, 150.0)), 296.56505117707798))
-    assert(isclose(distance(LatLon(60.0, -150.0), LatLon(60.0, 150.0)), 3219.6522077283666))
+    assert(isclose(calc_bearing(LatLon(60.0, -150.0), LatLon(60.0, 150.0)), 296.56505117707798))
+    assert(isclose(calc_distance(LatLon(60.0, -150.0), LatLon(60.0, 150.0)), 3219.6522077283666))
     assert(travel(LatLon(60.0, -150.0), 3219.6522077283666, 296.56505117707798) == LatLon(60.0, 150.0))
 
 def test_travel_3_C_B():
     # C -> B
-    assert(isclose(bearing(LatLon(60.0, 150.0), LatLon(60.0, -150.0)), 63.43494882292202))
-    assert(isclose(distance(LatLon(60.0, 150.0), LatLon(60.0, -150.0)), 3219.6522077283666))
+    assert(isclose(calc_bearing(LatLon(60.0, 150.0), LatLon(60.0, -150.0)), 63.43494882292202))
+    assert(isclose(calc_distance(LatLon(60.0, 150.0), LatLon(60.0, -150.0)), 3219.6522077283666))
     assert(travel(LatLon(60.0, 150.0), 3219.6522077283666, 63.43494882292202) == LatLon(60.0, -150.0))
 
 def test_travel_3_D_C():
     # D -> B
-    assert(isclose(bearing(LatLon(60.0, -90.0), LatLon(60.0, 150.0)), 326.30993247402023))
-    assert(isclose(distance(LatLon(60.0, -90.0), LatLon(60.0, 150.0)), 5706.281104765323))
+    assert(isclose(calc_bearing(LatLon(60.0, -90.0), LatLon(60.0, 150.0)), 326.30993247402023))
+    assert(isclose(calc_distance(LatLon(60.0, -90.0), LatLon(60.0, 150.0)), 5706.281104765323))
     assert(travel(LatLon(60.0, -90.0), 5706.281104765323, 326.30993247402023) == LatLon(60.0, 150.0))
 
 def test_travel_3_D_E():
     # D -> C
-    assert(isclose(bearing(LatLon(60.0, -90.0), LatLon(60.0, 60.0)), 17.192123734020974))
-    assert(isclose(distance(LatLon(60.0, -90.0), LatLon(60.0, 60.0)), 6422.418272993739))
+    assert(isclose(calc_bearing(LatLon(60.0, -90.0), LatLon(60.0, 60.0)), 17.192123734020974))
+    assert(isclose(calc_distance(LatLon(60.0, -90.0), LatLon(60.0, 60.0)), 6422.418272993739))
     assert(travel(LatLon(60.0, -90.0), 6422.418272993739, 17.192123734020974) == LatLon(60.0, 60.0))
 
 ### Travel to a point of same latitude, as in 4.pdn
 
 def test_travel_4_A_B():
     # A -> B
-    assert(isclose(bearing(LatLon(-60.0, 100.0), LatLon(-60.0, -150.0)), 141.04342059936801))
-    assert(isclose(distance(LatLon(-60.0, 100.0), LatLon(-60.0, -150.0)), 5376.987893935466))
+    assert(isclose(calc_bearing(LatLon(-60.0, 100.0), LatLon(-60.0, -150.0)), 141.04342059936801))
+    assert(isclose(calc_distance(LatLon(-60.0, 100.0), LatLon(-60.0, -150.0)), 5376.987893935466))
     assert(travel(LatLon(-60.0, 100.0), 5376.987893935466, 141.04342059936801) == LatLon(-60.0, -150.0))
 
 def test_travel_4_A_C():
     # A -> C
-    assert(isclose(bearing(LatLon(-60.0, 100.0), LatLon(-60.0, -30.0)), 208.30005243274795))
-    assert(isclose(distance(LatLon(-60.0, 100.0), LatLon(-60.0, -30.0)), 5992.565597324029))
+    assert(isclose(calc_bearing(LatLon(-60.0, 100.0), LatLon(-60.0, -30.0)), 208.30005243274795))
+    assert(isclose(calc_distance(LatLon(-60.0, 100.0), LatLon(-60.0, -30.0)), 5992.565597324029))
     assert(travel(LatLon(-60.0, 100.0), 5992.565597324029, 208.30005243274795) == LatLon(-60.0, -30.0))
 
 def test_travel_4_B_C():
     # B -> C
-    assert(isclose(bearing(LatLon(-60.0, -150.0), LatLon(-60.0, -30.0)), 146.30993247402023))
-    assert(isclose(distance(LatLon(-60.0, -150.0), LatLon(-60.0, -30.0)), 5706.281104765322))
+    assert(isclose(calc_bearing(LatLon(-60.0, -150.0), LatLon(-60.0, -30.0)), 146.30993247402023))
+    assert(isclose(calc_distance(LatLon(-60.0, -150.0), LatLon(-60.0, -30.0)), 5706.281104765322))
     assert(travel(LatLon(-60.0, -150.0), 5706.281104765322, 146.30993247402023) == LatLon(-60.0, -30.0))
 
 def test_travel_4_C_B():
     # C -> B
-    assert(isclose(bearing(LatLon(-60.0, -30.0), LatLon(-60.0, -150.0)), 213.69006752597977))
-    assert(isclose(distance(LatLon(-60.0, -30.0), LatLon(-60.0, -150.0)), 5706.281104765322))
+    assert(isclose(calc_bearing(LatLon(-60.0, -30.0), LatLon(-60.0, -150.0)), 213.69006752597977))
+    assert(isclose(calc_distance(LatLon(-60.0, -30.0), LatLon(-60.0, -150.0)), 5706.281104765322))
     assert(travel(LatLon(-60.0, -30.0), 5706.281104765322, 213.69006752597977) == LatLon(-60.0, -150.0))

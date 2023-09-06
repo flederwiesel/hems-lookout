@@ -53,7 +53,7 @@ class LatLon:
         return isclose(self.lat, other.lat) and isclose(self.lon, other.lon)
 
 
-def bearing(src: LatLon, dst: LatLon) -> float:
+def calc_bearing(src: LatLon, dst: LatLon) -> float:
     """Calculate bearing between two coordinates"""
     if dst.lon == src.lon:
         if dst.lat >= src.lat:
@@ -75,7 +75,7 @@ def bearing(src: LatLon, dst: LatLon) -> float:
     return b + 360.0 if b < 0.0 else b
 
 
-def distance(src: LatLon, dst: LatLon) -> float:
+def calc_distance(src: LatLon, dst: LatLon) -> float:
     """Calculate distance **in km** between two coordinates"""
     C = math.radians(dst.lon - src.lon)
     a = math.radians(src.lat)

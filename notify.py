@@ -10,8 +10,8 @@ import subprocess
 from dataclasses import dataclass
 from gcmath import (
     LatLon,
-    bearing,
-    distance,
+    calc_bearing,
+    calc_distance,
 )
 
 TRACK_DEVIATION = 5 # degrees
@@ -94,10 +94,10 @@ if __name__ == "__main__":
                                 for l in locations:
                                     location, pos = l["name"], LatLon(l["lat"], l["lon"])
 
-                                    b = bearing(LatLon(lat, lon), pos)
+                                    b = calc_bearing(LatLon(lat, lon), pos)
 
                                     if abs(b - track) <= TRACK_DEVIATION:
-                                        d = distance(LatLon(lat, lon), pos)
+                                        d = calc_distance(LatLon(lat, lon), pos)
 
                                         if d < MAX_DISTANCE:
                                             params = formatFlightParams(alt, vrate, d, speed)
