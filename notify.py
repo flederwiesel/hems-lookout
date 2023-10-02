@@ -71,9 +71,7 @@ def format_flight_params(alt: float, vrate: float, distance: float, speed: float
     return result
 
 
-def get_notifications(
-    data: list[list], settings: list[dict]
-) -> list[dict]:
+def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
     """Iterate over adsb data to determine whether HEMS are heading towards
     user locations by calculating bearing and distance for each combination.
     Return a list of notifications"""
