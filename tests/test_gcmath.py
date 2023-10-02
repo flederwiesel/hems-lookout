@@ -11,6 +11,8 @@ from gcmath import (
     deg_to_km,
 )
 
+# fmt: off
+
 def test_travel_nowhere():
     """Going nowhere..."""
     assert travel(LatLon(0.0, 0.0), 0.0, 0.0) == LatLon(0.0, 0.0)
