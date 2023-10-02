@@ -1,3 +1,6 @@
+"""Test whether notifications aber being (not) triggered
+around the boeder of the default radius"""
+
 import notify
 
 USER_SETTINGS = [
@@ -41,10 +44,12 @@ NEGATIVE = [
 
 
 def test_positive():
+    """Check whether notifications are being sent for all `POSITIVE` traces"""
     notifications = notify.get_notifications(POSITIVE, USER_SETTINGS)
     assert len(notifications) == 8
 
 
 def test_negative():
+    """Check whether no notifications are being sent for `NEGATIVE` traces"""
     notifications = notify.get_notifications(NEGATIVE, USER_SETTINGS)
     assert len(notifications) == 0
