@@ -135,13 +135,13 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
 
 
 if __name__ == "__main__":
-    settings = get_user_settings(os.path.dirname(__file__) + "/notify.json")
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-c", "--stdout", action="store_true")
 
     args, files = parser.parse_known_args()
+
+    settings = get_user_settings(os.path.dirname(__file__) + "/notify.json")
 
     for filename in files:
         try:
