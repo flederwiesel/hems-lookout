@@ -22,6 +22,8 @@ MAX_DISTANCE = 70  # km
 
 def get_user_settings(path):
     """Return user settings from JSON file"""
+
+    # pylint: disable=redefined-outer-name
     try:
         with open(path, "r", encoding="utf-8") as settings:
             return json.load(settings)
@@ -76,6 +78,7 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
     user locations by calculating bearing and distance for each combination.
     Return a list of notifications"""
 
+    # pylint: disable=redefined-outer-name
     # pylint: disable=too-many-locals
     # pylint: disable=too-many-nested-blocks
 
@@ -132,27 +135,36 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
 
 
 if __name__ == "__main__":
-    user_settings = get_user_settings(os.path.dirname(__file__) + "/notify.json")
+    settings = get_user_settings(os.path.dirname(__file__) + "/notify.json")
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-c", "--stdout", action="store_true")
 
-    args, leftover = parser.parse_known_args()
+    args, files = parser.parse_known_args()
 
-    for filename in leftover:
+    for filename in files:
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 adsb = json.load(file)
-                user_notifications = get_notifications(adsb["states"], user_settings)
+                notifications = get_notifications(adsb["states"], settings)
 
                 if args.stdout:
-                    for n in user_notifications:
-                        print(f"*** {n['receipient']} ***\n[{n['message']}]\n")
+                    for notification in notifications:
+                        print(
+                            f"*** {notification['receipient']} ***\n"
+                            f"{notification['message']}\n"
+                        )
                 else:
-                    for n in user_notifications:
+                    for notification in notifications:
                         subprocess.call(
-                            ["signal-cli", "send", "-m", n["message"], n["receipient"]],
+                            [
+                                "signal-cli",
+                                "send",
+                                "-m",
+                                notification["message"],
+                                notification["receipient"],
+                            ],
                             stdout=subprocess.DEVNULL,
                             timeout=15,
                         )
