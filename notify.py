@@ -84,52 +84,48 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
 
     notifications = []
 
-    try:
-        for state in data:
-            # squawk is currently not needed, -> _
-            icao, callsign, reg, _, lat, lon, alt, vrate, track, speed = state
+    for state in data:
+        # squawk is currently not needed, -> _
+        icao, callsign, reg, _, lat, lon, alt, vrate, track, speed = state
 
-            if track is not None:
-                if alt is None:
-                    alt = "unknown"
+        if track is not None:
+            if alt is None:
+                alt = "unknown"
 
-                if alt != "ground":
-                    for user in settings:
-                        receipient, locations = user["phone"], user["locations"]
+            if alt != "ground":
+                for user in settings:
+                    receipient, locations = user["phone"], user["locations"]
 
-                        for loc in locations:
-                            location, pos = loc["name"], LatLon(loc["lat"], loc["lon"])
+                    for loc in locations:
+                        location, pos = loc["name"], LatLon(loc["lat"], loc["lon"])
 
-                            bearing = calc_bearing(LatLon(lat, lon), pos)
+                        bearing = calc_bearing(LatLon(lat, lon), pos)
 
-                            if abs(bearing - track) <= TRACK_DEVIATION:
-                                dist = calc_distance(LatLon(lat, lon), pos)
+                        if abs(bearing - track) <= TRACK_DEVIATION:
+                            dist = calc_distance(LatLon(lat, lon), pos)
 
-                                if dist < MAX_DISTANCE:
-                                    params = format_flight_params(
-                                        alt, vrate, dist, speed
-                                    )
+                            if dist < MAX_DISTANCE:
+                                params = format_flight_params(
+                                    alt, vrate, dist, speed
+                                )
 
-                                    callsign = (
-                                        re.sub(" *$", " ", callsign) if callsign else ""
-                                    )
+                                callsign = (
+                                    re.sub(" *$", " ", callsign) if callsign else ""
+                                )
 
-                                    message = (
-                                        f"{callsign}{reg}\n"
-                                        f"{location}\n"
-                                        f"{params}\n"
-                                        f"https://globe.adsbexchange.com/?icao={icao}"
-                                    )
+                                message = (
+                                    f"{callsign}{reg}\n"
+                                    f"{location}\n"
+                                    f"{params}\n"
+                                    f"https://globe.adsbexchange.com/?icao={icao}"
+                                )
 
-                                    notifications.append(
-                                        {
-                                            "receipient": receipient,
-                                            "message": message,
-                                        }
-                                    )
-
-    except json.JSONDecodeError as ex:
-        print(f"{ex}:\n{data}", file=sys.stderr)
+                                notifications.append(
+                                    {
+                                        "receipient": receipient,
+                                        "message": message,
+                                    }
+                                )
 
     return notifications
 
@@ -141,10 +137,13 @@ if __name__ == "__main__":
 
     args, files = parser.parse_known_args()
 
-    settings = get_user_settings(os.path.dirname(__file__) + "/notify.json")
+    try:
+        filename = os.path.dirname(__file__) + "/notify.json"
 
-    for filename in files:
-        try:
+        with open(filename, "r", encoding="utf-8") as file:
+            settings = json.load(file)
+
+        for filename in files:
             with open(filename, "r", encoding="utf-8") as file:
                 adsb = json.load(file)
                 notifications = get_notifications(adsb["states"], settings)
@@ -169,5 +168,8 @@ if __name__ == "__main__":
                             timeout=15,
                         )
 
-        except FileNotFoundError as exception:
-            print(f"{exception}:\n{filename}", file=sys.stderr)
+    except FileNotFoundError as exception:
+        print(f"{exception}", file=sys.stderr)
+
+    except json.JSONDecodeError as exception:
+        print(f"'{filename}': {exception}", file=sys.stderr)
