@@ -153,6 +153,9 @@ if __name__ == "__main__":
                 notifications = get_notifications(adsb["states"], settings)
 
                 if args.stdout:
+                    if notifications:
+                        print(f"=== {filename} ===\n")
+
                     for notification in notifications:
                         print(
                             f"*** {notification['receipient']} ***\n"
