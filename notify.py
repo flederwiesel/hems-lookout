@@ -6,10 +6,10 @@ towards one of the user defined destinations within a certain distance.
 
 import argparse
 import sys
-import os
 import json
 import re
 import subprocess
+from pathlib import Path
 from gcmath import (
     LatLon,
     calc_bearing,
@@ -142,7 +142,9 @@ if __name__ == "__main__":
     args, files = parser.parse_known_args()
 
     try:
-        filename = os.path.dirname(__file__) + "/notify.json"
+        scriptdir = Path(__file__).parent
+
+        filename = scriptdir / "notify.json"
 
         with open(filename, "r", encoding="utf-8") as file:
             settings = json.load(file)
