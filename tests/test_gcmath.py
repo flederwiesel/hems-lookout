@@ -33,7 +33,7 @@ def test_travel_north():
     assert travel(LatLon(-90.0, 0), deg_to_km(270), 0.0) == LatLon(  0.0, 180.0)
     assert travel(LatLon(-90.0, 0), deg_to_km(280), 0.0) == LatLon(-10.0, 180.0)
     assert travel(LatLon(-90.0, 0), deg_to_km(350), 0.0) == LatLon(-80.0, 180.0)
-    assert travel(LatLon(-90.0, 0), deg_to_km(360), 0.0) == LatLon(-90.0, 180.0)
+    assert travel(LatLon(-90.0, 0), deg_to_km(360), 0.0) == LatLon(-90.0,   0.0)
     assert travel(LatLon(-90.0, 0), deg_to_km(370), 0.0) == LatLon(-80.0,   0.0)
 
     assert travel(LatLon(-80.0, 0), deg_to_km(  0), 0.0) == LatLon(-80.0,   0.0)
@@ -109,7 +109,8 @@ def test_travel_north():
     assert travel(LatLon(80.0, 0), deg_to_km(280), 0.0) == LatLon(  0.0,   0.0)
 
     assert travel(LatLon(90.0, 0), deg_to_km(  0), 0.0) == LatLon( 90.0,   0.0)
-    assert travel(LatLon(90.0, 0), deg_to_km(100), 0.0) == LatLon( 90.0,   0.0)
+    assert travel(LatLon(90.0, 0), deg_to_km( 10), 0.0) == LatLon( 80.0, 180.0)
+    assert travel(LatLon(90.0, 0), deg_to_km(100), 0.0) == LatLon(-10.0, 180.0)
 
 def test_travel_south():
     """Along circles of longitude"""
@@ -125,7 +126,7 @@ def test_travel_south():
     assert travel(LatLon(90.0,   0.0), deg_to_km(270), 180.0) == LatLon(  0.0, 180.0)
     assert travel(LatLon(90.0,   0.0), deg_to_km(280), 180.0) == LatLon( 10.0, 180.0)
     assert travel(LatLon(90.0,   0.0), deg_to_km(350), 180.0) == LatLon( 80.0, 180.0)
-    assert travel(LatLon(90.0,   0.0), deg_to_km(360), 180.0) == LatLon( 90.0, 180.0)
+    assert travel(LatLon(90.0,   0.0), deg_to_km(360), 180.0) == LatLon( 90.0,   0.0)
     assert travel(LatLon(90.0,   0.0), deg_to_km(370), 180.0) == LatLon( 80.0,   0.0)
 
     assert travel(LatLon(80.0,   0.0), deg_to_km(  0), 180.0) == LatLon( 80.0,   0.0)
@@ -206,8 +207,9 @@ def test_travel_south():
     # That's why lon is still at 180° below...
     assert travel(LatLon(-80.0,   0.0), deg_to_km(370), 180.0) == LatLon(-90.0, 180.0)
 
-    assert travel(LatLon(-90.0,   0.0), deg_to_km( 0), 180.0) == LatLon(-90.0,   0.0)
-    assert travel(LatLon(-90.0,   0.0), deg_to_km(10), 180.0) == LatLon(-90.0,   0.0)
+    assert travel(LatLon(-90.0,   0.0), deg_to_km(  0), 180.0) == LatLon(-90.0,   0.0)
+    assert travel(LatLon(-90.0,   0.0), deg_to_km( 10), 180.0) == LatLon(-80.0, 180.0)
+    assert travel(LatLon(-90.0,   0.0), deg_to_km(100), 180.0) == LatLon( 10.0, 180.0)
 
 def test_travel_east():
     """Along circles of latitude"""
@@ -522,7 +524,13 @@ def test_travel_4_c_b():
     assert(isclose(calc_distance(LatLon(-60.0, -30.0), LatLon(-60.0, -150.0)), 5706.281104765322))
     assert(travel(LatLon(-60.0, -30.0), 5706.281104765322, 213.69006752597977) == LatLon(-60.0, -150.0))
 
+### Bearing modulo
+
 def test_overrun():
+    """Check for travelling with `bearing + 360` arrives at the same point as
+    `bearing` for N/E/S/W directions.  Although this should mathematically the
+    same, for those special cases we use separate execution paths, which makes
+    calculation easier and minimises float rounding errors."""
     assert(
         travel(LatLon(-60.0, -30.0), 1111.111,   0.0) ==
         travel(LatLon(-60.0, -30.0), 1111.111, 360.0)
