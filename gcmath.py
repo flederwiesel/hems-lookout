@@ -118,10 +118,7 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
         dist = km_to_rad(dist)
 
         if isclose(bear, 0.0) or isclose(bear, 180.0):
-            dist = math.degrees(dist)
-
-            while dist > 360.0:
-                dist -= 360.0
+            dist = math.degrees(dist) % 360.0
 
             if isclose(bear, 0.0):
                 # Travelling north
