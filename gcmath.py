@@ -175,9 +175,6 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
             )
             q = math.sin(a) * math.sin(b)
 
-            if isclose(q, 0.0):
-                raise ZeroDivisionError
-
             C = math.acos((math.cos(dist) - math.cos(a) * math.cos(b)) / q)
 
             pos.lat = 90.0 - math.degrees(a)
