@@ -112,6 +112,7 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
         bear   -- bearing: °
     """
     pos = LatLon(origin.lat, origin.lon)
+    bear %= 360.0
 
     if not isclose(dist, 0.0):
         dist = km_to_rad(dist)

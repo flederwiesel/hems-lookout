@@ -521,3 +521,21 @@ def test_travel_4_c_b():
     assert(isclose(calc_bearing(LatLon(-60.0, -30.0), LatLon(-60.0, -150.0)), 213.69006752597977))
     assert(isclose(calc_distance(LatLon(-60.0, -30.0), LatLon(-60.0, -150.0)), 5706.281104765322))
     assert(travel(LatLon(-60.0, -30.0), 5706.281104765322, 213.69006752597977) == LatLon(-60.0, -150.0))
+
+def test_overrun():
+    assert(
+        travel(LatLon(-60.0, -30.0), 1111.111,   0.0) ==
+        travel(LatLon(-60.0, -30.0), 1111.111, 360.0)
+    )
+    assert(
+        travel(LatLon(-60.0, -30.0), 2222.2222,  90.0) ==
+        travel(LatLon(-60.0, -30.0), 2222.2222, 450.0)
+    )
+    assert(
+        travel(LatLon(-60.0, -30.0), 1111.111, 180.0) ==
+        travel(LatLon(-60.0, -30.0), 1111.111, 540.0)
+    )
+    assert(
+        travel(LatLon(-60.0, -30.0), 2222.222, 270.0) ==
+        travel(LatLon(-60.0, -30.0), 2222.222, 630.0)
+    )
