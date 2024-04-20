@@ -122,33 +122,37 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
 
             if isclose(bear, 0.0):
                 # Travelling north
-                if pos.lat < 90.0:
-                    pos.lat = origin.lat + dist
+                if pos.lat > 90.0:
+                    raise ValueError
 
-                    if pos.lat > 270.0:
-                        pos.lat -= 360.0
+                pos.lat = origin.lat + dist
 
-                    elif pos.lat > 90.0:
-                        pos.lat = 180.0 - pos.lat
+                if pos.lat > 270.0:
+                    pos.lat -= 360.0
 
-                        if pos.lon > 0.0:
-                            pos.lon -= 180.0
-                        else:
-                            pos.lon += 180.0
+                elif pos.lat > 90.0:
+                    pos.lat = 180.0 - pos.lat
+
+                    if pos.lon > 0.0:
+                        pos.lon -= 180.0
+                    else:
+                        pos.lon += 180.0
             else:
                 # Travelling south
-                if pos.lat > -90.0:
-                    pos.lat = origin.lat - dist
+                if pos.lat < -90.0:
+                    raise ValueError
 
-                    if pos.lat < -270.0:
-                        pos.lat += 360.0
-                    elif pos.lat < -90.0:
-                        pos.lat = -180.0 - pos.lat
+                pos.lat = origin.lat - dist
 
-                        if pos.lon > 0.0:
-                            pos.lon -= 180.0
-                        else:
-                            pos.lon += 180.0
+                if pos.lat < -270.0:
+                    pos.lat += 360.0
+                elif pos.lat < -90.0:
+                    pos.lat = -180.0 - pos.lat
+
+                    if pos.lon > 0.0:
+                        pos.lon -= 180.0
+                    else:
+                        pos.lon += 180.0
 
         elif isclose(bear, 90.0) or isclose(bear, 270.0):
             pos.lat = origin.lat
