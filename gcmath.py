@@ -80,7 +80,14 @@ def calc_distance(src: LatLon, dst: LatLon) -> float:
     C = math.radians(dst.lon - src.lon)
     a = math.radians(src.lat)
     b = math.radians(dst.lat)
-    c = math.acos(math.sin(a) * math.sin(b) + math.cos(a) * math.cos(b) * math.cos(C))
+    c = math.acos(
+        min(
+            1,
+            max(
+                -1, math.sin(a) * math.sin(b) + math.cos(a) * math.cos(b) * math.cos(C)
+            ),
+        )
+    )
 
     if c < 0:
         c += math.pi
@@ -170,12 +177,20 @@ def travel(origin: LatLon, dist: float, bear: float) -> LatLon:
         else:
             b = math.radians(90.0 - origin.lat)
             a = math.acos(
-                math.cos(b) * math.cos(dist)
-                + math.sin(b) * math.sin(dist) * math.cos(math.radians(bear))
+                min(
+                    1,
+                    max(
+                        -1,
+                        math.cos(b) * math.cos(dist)
+                        + math.sin(b) * math.sin(dist) * math.cos(math.radians(bear)),
+                    ),
+                )
             )
             q = math.sin(a) * math.sin(b)
 
-            C = math.acos((math.cos(dist) - math.cos(a) * math.cos(b)) / q)
+            C = math.acos(
+                min(1, max(-1, (math.cos(dist) - math.cos(a) * math.cos(b)) / q))
+            )
 
             pos.lat = 90.0 - math.degrees(a)
             pos.lon = (
