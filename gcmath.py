@@ -60,6 +60,9 @@ def calc_bearing(src: LatLon, dst: LatLon) -> float:
             b = 0.0
         else:
             b = 180.0
+    # elif dst.lat == src.lat:
+    #   Don't do this: Travelling along a line of latitude is
+    #   longer than the direct path, unless it is the equator
     else:
         delta = math.radians(dst.lon - src.lon)
         slat = math.radians(src.lat)
