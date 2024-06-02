@@ -101,8 +101,11 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                             location, pos = loc["name"], LatLon(loc["lat"], loc["lon"])
 
                             bearing = calc_bearing(LatLon(lat, lon), pos)
+                            deviation = bearing - track
+                            # Catch track/bearing wrapping around 0°
+                            deviation = (deviation + 180.0) % 360.0 - 180.0
 
-                            if abs(bearing - track) <= TRACK_DEVIATION:
+                            if abs(deviation) <= TRACK_DEVIATION:
                                 dist = calc_distance(LatLon(lat, lon), pos)
 
                                 if dist < MAX_DISTANCE:
