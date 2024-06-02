@@ -108,7 +108,7 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                             if abs(deviation) <= TRACK_DEVIATION:
                                 dist = calc_distance(LatLon(lat, lon), pos)
 
-                                if dist < MAX_DISTANCE:
+                                if dist <= MAX_DISTANCE:
                                     params = format_flight_params(
                                         alt, vrate, dist, speed
                                     )
