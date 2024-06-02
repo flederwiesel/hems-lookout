@@ -1,4 +1,5 @@
 """Create JSON test file for testing notifications based on distance"""
+
 import json
 from gcmath import LatLon, travel
 
