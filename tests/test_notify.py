@@ -12,7 +12,7 @@ BGU = LatLon(49.4865293, 8.3892454)
 
 USER_SETTINGS = [
     {
-        "phone": "+49**********",
+        "recipient": "+49**********",
         "locations": [
             {
                 "name": "BGU Ludwigshafen",

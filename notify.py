@@ -43,18 +43,18 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
 
                 if alt != "ground":
                     for user in settings:
-                        receipient, locations = user["phone"], user["locations"]
+                        recipient, locations = user["recipient"], user["locations"]
 
                         for loc in locations:
-                            location, pos = loc["name"], LatLon(loc["lat"], loc["lon"])
+                            location, poi = loc["name"], LatLon(loc["lat"], loc["lon"])
 
-                            bearing = calc_bearing(LatLon(lat, lon), pos)
+                            bearing = calc_bearing(LatLon(lat, lon), poi)
                             deviation = bearing - track
                             # Catch track/bearing wrapping around 0°
                             deviation = (deviation + 180.0) % 360.0 - 180.0
 
                             if abs(deviation) <= TRACK_DEVIATION:
-                                dist = calc_distance(LatLon(lat, lon), pos)
+                                dist = calc_distance(LatLon(lat, lon), poi)
 
                                 if dist <= MAX_DISTANCE:
                                     callsign = (
@@ -69,7 +69,7 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
 
                                     notifications.append(
                                         {
-                                            "receipient": receipient,
+                                            "recipient": recipient,
                                             "message": message,
                                         }
                                     )
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-c", "--stdout", action="store_true")
 
-    args, files = parser.parse_known_args()
+    args, leftover = parser.parse_known_args()
 
     try:
         homedir = Path(os.getenv("HOME", os.getenv("USERPROFILE")))
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         with open(filename, "r", encoding="utf-8") as file:
             settings = json.load(file)
 
-        for filename in files:
+        for filename in leftover:
             with open(filename, "r", encoding="utf-8") as file:
                 adsb = json.load(file)
                 notifications = get_notifications(adsb["states"], settings)
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
                     for notification in notifications:
                         print(
-                            f"*** {notification['receipient']} ***\n"
+                            f"*** {notification['recipient']} ***\n"
                             f"{notification['message']}\n"
                         )
                 else:
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                                 "send",
                                 "-m",
                                 notification["message"],
-                                notification["receipient"],
+                                notification["recipient"],
                             ],
                             stdout=subprocess.DEVNULL,
                             timeout=15,
