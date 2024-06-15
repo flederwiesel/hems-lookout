@@ -21,44 +21,6 @@ TRACK_DEVIATION = 5  # degrees
 MAX_DISTANCE = 70  # km
 
 
-def format_flight_params(alt: float, vrate: float, distance: float, speed: float):
-    """Format flight parameters for the notification to be sent"""
-    if int == type(alt):
-        result = f"alt {float(alt) * 0.3048:.0f}m"
-    elif float == type(alt):
-        result = f"alt {alt * 0.3048:.0f}m"
-    elif str == type(alt):
-        result = f"alt {alt}"
-    else:
-        result = ""
-
-    if len(result):
-        if int == type(vrate):
-            result += f"{float(vrate) * 0.3048:+.0f}"
-        elif float == type(vrate):
-            result += f"{vrate * 0.3048:+.0f}"
-
-    if len(result):
-        result += ", "
-
-    result += f"dist {distance:.0f}km"
-
-    if int == type(speed) or str == type(speed):
-        speed = float(speed)
-
-    if float == type(speed) and speed:
-        speed = speed * 1.852
-        eta = distance / speed * 60
-        mins = int(eta)
-        eta -= mins
-        eta *= 60
-        secs = int(eta)
-        eta = f"eta {mins:02d}:{secs:02d} min"
-        result += f", speed {speed:.0f}km/h eta {eta}"
-
-    return result
-
-
 def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
     """Iterate over adsb data to determine whether HEMS are heading towards
     user locations by calculating bearing and distance for each combination.
@@ -72,8 +34,8 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
 
     try:
         for state in data:
-            # squawk is currently not needed, -> _
-            icao, callsign, reg, _, lat, lon, alt, vrate, track, speed = state
+            # squawk, vrate and speed are currently not needed, -> _
+            icao, callsign, reg, _, lat, lon, alt, _, track, _ = state
 
             if track is not None:
                 if alt is None:
@@ -95,10 +57,6 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                                 dist = calc_distance(LatLon(lat, lon), pos)
 
                                 if dist <= MAX_DISTANCE:
-                                    params = format_flight_params(
-                                        alt, vrate, dist, speed
-                                    )
-
                                     callsign = (
                                         re.sub(" *$", " ", callsign) if callsign else ""
                                     )
@@ -106,7 +64,6 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                                     message = (
                                         f"{callsign}{reg}\n"
                                         f"{location}\n"
-                                        f"{params}\n"
                                         f"https://globe.adsbexchange.com/?icao={icao}"
                                     )
 
