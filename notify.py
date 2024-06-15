@@ -8,8 +8,8 @@ import argparse
 import sys
 import json
 import os
-import re
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 from gcmath import (
     LatLon,
@@ -19,6 +19,52 @@ from gcmath import (
 
 TRACK_DEVIATION = 5  # degrees
 MAX_DISTANCE = 70  # km
+
+
+class InsufficientData(Exception):
+    """Do nothing"""
+
+
+@dataclass
+class AicraftState:
+    """Data class to be initialised from dict, as read from data/hems/**.json.
+    Raises InsufficientData exception in constructor, if essential values are missing.
+    """
+
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, state: list):
+        # fmt: off
+        (
+            # Comments below denote possible different types
+            self.icao,      # str
+            self.callsign,  # str
+            self.reg,       # None|str
+            self.squawk,    # None|str
+            lat,            # float
+            lon,            # float
+            self.alt,       # int|str"ground"
+            self.vrate,     # None|float
+            self.track,     # float
+            self.speed,     # float
+        ) = state
+        # fmt: on
+
+        if not any([self.icao, self.callsign, self.reg]):
+            # We want at least _something_ to report...
+            raise InsufficientData
+
+        if None in [lat, lon, self.track]:
+            # Cannot calculate anything...
+            raise InsufficientData
+
+        self.callsign = self.callsign.strip() if self.callsign else ""
+        self.reg = self.reg.strip() if self.reg else ""
+
+        # Backup: Report ICAO hex code instead of empty string....
+        if not (self.callsign and self.reg):
+            self.callsign = self.icao
+
+        self.pos = LatLon(lat, lon)
 
 
 def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
@@ -32,50 +78,43 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
 
     notifications = []
 
-    try:
-        for state in data:
-            # squawk, vrate and speed are currently not needed, -> _
-            icao, callsign, reg, _, lat, lon, alt, _, track, _ = state
+    for state in data:
+        try:
+            state = AicraftState(state)
 
-            if track is not None:
-                if alt is None:
-                    alt = "unknown"
+            for user in settings:
+                recipient, locations = user["recipient"], user["locations"]
 
-                if alt != "ground":
-                    for user in settings:
-                        recipient, locations = user["recipient"], user["locations"]
+                for loc in locations:
+                    location, poi = loc["name"], LatLon(loc["lat"], loc["lon"])
 
-                        for loc in locations:
-                            location, poi = loc["name"], LatLon(loc["lat"], loc["lon"])
+                    bearing = calc_bearing(state.pos, poi)
+                    deviation = bearing - state.track
+                    # Catch track/bearing wrapping around 0°
+                    deviation = (deviation + 180.0) % 360.0 - 180.0
 
-                            bearing = calc_bearing(LatLon(lat, lon), poi)
-                            deviation = bearing - track
-                            # Catch track/bearing wrapping around 0°
-                            deviation = (deviation + 180.0) % 360.0 - 180.0
+                    if abs(deviation) <= TRACK_DEVIATION:
+                        dist = calc_distance(state.pos, poi)
 
-                            if abs(deviation) <= TRACK_DEVIATION:
-                                dist = calc_distance(LatLon(lat, lon), poi)
+                        if dist <= MAX_DISTANCE:
+                            message = (
+                                f"{state.callsign}"
+                                f"{' ' if len(state.callsign) and len(state.reg) else ''}"
+                                f"{state.reg}\n"
+                                f"{location}\n"
+                                f"https://globe.adsbexchange.com/?icao={state.icao}"
+                            )
 
-                                if dist <= MAX_DISTANCE:
-                                    callsign = (
-                                        re.sub(" *$", " ", callsign) if callsign else ""
-                                    )
-
-                                    message = (
-                                        f"{callsign}{reg}\n"
-                                        f"{location}\n"
-                                        f"https://globe.adsbexchange.com/?icao={icao}"
-                                    )
-
-                                    notifications.append(
-                                        {
-                                            "recipient": recipient,
-                                            "message": message,
-                                        }
-                                    )
-
-    except ValueError as exception:
-        print(f"{exception}: {state}", file=sys.stderr)
+                            notifications.append(
+                                {
+                                    "recipient": recipient,
+                                    "message": message,
+                                }
+                            )
+        except InsufficientData:
+            print("InsufficientData: %s", json.dumps(state))
+        except ValueError as exception:
+            print(f"{exception}: {state}", file=sys.stderr)
 
     return notifications
 

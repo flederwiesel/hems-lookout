@@ -300,8 +300,8 @@ if "__main__" == __name__:
             adsb["states"] += [
                 [
                     f"bearing={bearing}",
-                    "",
-                    "",
+                    " ",
+                    " ",
                     "0020" if abs(deviation) <= 5.0 else "7000",
                     src.lat,
                     src.lon,

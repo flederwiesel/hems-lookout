@@ -34,9 +34,9 @@ if "__main__" == __name__:
 
             adsb["states"] += [
                 [
-                    "",
-                    "",
-                    "",
+                    " ",
+                    " ",
+                    " ",
                     "0020" if distance <= 70.0 else "7000",
                     src.lat,
                     src.lon,
