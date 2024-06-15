@@ -67,6 +67,23 @@ class AicraftState:
         self.pos = LatLon(lat, lon)
 
 
+def isnotifyable(state: AicraftState, poi: LatLon) -> bool:
+    """Determine whether notifications shall be sent for an AicraftState"""
+    bearing = calc_bearing(state.pos, poi)
+    deviation = bearing - state.track
+
+    # Catch track/bearing wrapping around 0°
+    deviation = (deviation + 180.0) % 360.0 - 180.0
+
+    if abs(deviation) <= TRACK_DEVIATION:
+        dist = calc_distance(state.pos, poi)
+
+        if dist <= MAX_DISTANCE:
+            return True
+
+    return False
+
+
 def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
     """Iterate over adsb data to determine whether HEMS are heading towards
     user locations by calculating bearing and distance for each combination.
@@ -88,29 +105,21 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                 for loc in locations:
                     location, poi = loc["name"], LatLon(loc["lat"], loc["lon"])
 
-                    bearing = calc_bearing(state.pos, poi)
-                    deviation = bearing - state.track
-                    # Catch track/bearing wrapping around 0°
-                    deviation = (deviation + 180.0) % 360.0 - 180.0
+                    if isnotifyable(state, poi):
+                        message = (
+                            f"{state.callsign}"
+                            f"{' ' if len(state.callsign) and len(state.reg) else ''}"
+                            f"{state.reg}\n"
+                            f"{location}\n"
+                            f"https://globe.adsbexchange.com/?icao={state.icao}"
+                        )
 
-                    if abs(deviation) <= TRACK_DEVIATION:
-                        dist = calc_distance(state.pos, poi)
-
-                        if dist <= MAX_DISTANCE:
-                            message = (
-                                f"{state.callsign}"
-                                f"{' ' if len(state.callsign) and len(state.reg) else ''}"
-                                f"{state.reg}\n"
-                                f"{location}\n"
-                                f"https://globe.adsbexchange.com/?icao={state.icao}"
-                            )
-
-                            notifications.append(
-                                {
-                                    "recipient": recipient,
-                                    "message": message,
-                                }
-                            )
+                        notifications.append(
+                            {
+                                "recipient": recipient,
+                                "message": message,
+                            }
+                        )
         except InsufficientData:
             print("InsufficientData: %s", json.dumps(state))
         except ValueError as exception:
