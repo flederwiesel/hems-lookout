@@ -7,6 +7,7 @@ towards one of the user defined destinations within a certain distance.
 import argparse
 import sys
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -18,21 +19,6 @@ from gcmath import (
 
 TRACK_DEVIATION = 5  # degrees
 MAX_DISTANCE = 70  # km
-
-
-def get_user_settings(path):
-    """Return user settings from JSON file"""
-
-    # pylint: disable=redefined-outer-name
-    try:
-        with open(path, "r", encoding="utf-8") as settings:
-            return json.load(settings)
-    except FileNotFoundError:
-        pass  # for now...
-    except json.JSONDecodeError as ex:
-        print(f"{ex}:\n{settings}", file=sys.stderr)
-
-    return []
 
 
 def format_flight_params(alt: float, vrate: float, distance: float, speed: float):
@@ -145,11 +131,9 @@ if __name__ == "__main__":
     args, files = parser.parse_known_args()
 
     try:
-        scriptdir = Path(__file__).parent
+        homedir = Path(os.getenv("HOME", os.getenv("USERPROFILE")))
 
-        filename = scriptdir / "notify.json"
-
-        with open(filename, "r", encoding="utf-8") as file:
+        with open(homedir / "hems-lookout-users.json", "r", encoding="utf-8") as file:
             settings = json.load(file)
 
         for filename in files:
