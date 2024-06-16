@@ -132,8 +132,9 @@ if __name__ == "__main__":
 
     try:
         homedir = Path(os.getenv("HOME", os.getenv("USERPROFILE")))
+        filename = homedir / "hems-lookout-users.json"
 
-        with open(homedir / "hems-lookout-users.json", "r", encoding="utf-8") as file:
+        with open(filename, "r", encoding="utf-8") as file:
             settings = json.load(file)
 
         for filename in files:
