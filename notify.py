@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from gcmath import (
     LatLon,
@@ -67,6 +68,18 @@ class AicraftState:
         self.pos = LatLon(lat, lon)
 
 
+@dataclass
+class Message:
+    """Data class to hold notification message data"""
+
+    def __init__(self, **kwargs):
+        self.timestamp = datetime.now().isoformat(timespec="seconds")
+        self.icao = kwargs["icao"]
+        self.reg = kwargs["reg"]
+        self.callsign = kwargs["callsign"]
+        self.location = kwargs["location"]
+
+
 def isnotifyable(state: AicraftState, poi: LatLon) -> bool:
     """Determine whether notifications shall be sent for an AicraftState"""
     bearing = calc_bearing(state.pos, poi)
@@ -106,18 +119,15 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                     location, poi = loc["name"], LatLon(loc["lat"], loc["lon"])
 
                     if isnotifyable(state, poi):
-                        message = (
-                            f"{state.callsign}"
-                            f"{' ' if len(state.callsign) and len(state.reg) else ''}"
-                            f"{state.reg}\n"
-                            f"{location}\n"
-                            f"https://globe.adsbexchange.com/?icao={state.icao}"
-                        )
-
                         notifications.append(
                             {
                                 "recipient": recipient,
-                                "message": message,
+                                "message": Message(
+                                    location=location,
+                                    callsign=state.callsign,
+                                    reg=state.reg,
+                                    icao=state.icao,
+                                ),
                             }
                         )
         except InsufficientData:
@@ -152,9 +162,15 @@ if __name__ == "__main__":
                         print(f"=== {filename} ===\n")
 
                     for notification in notifications:
+                        recipient = notification["recipient"]
+                        message = notification["message"]
+
                         print(
-                            f"*** {notification['recipient']} ***\n"
-                            f"{notification['message']}\n"
+                            # fmt: off
+                            f"*** {recipient} ***\n",
+                            f"{message.callsign} {message.reg}".strip(), "\n",
+                            f"{message.location}",
+                            # fmt: on
                         )
                 else:
                     for notification in notifications:
