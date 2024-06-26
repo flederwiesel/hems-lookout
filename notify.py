@@ -81,6 +81,14 @@ class Message:
         self.location = kwargs["location"]
         self.href = kwargs["href"]
 
+    def __str__(self):
+        return (
+            # fmt: off
+            f"{self.callsign} {self.reg}".strip() + "\n"
+            f"{self.location}"
+            # fmt: on
+        )
+
 
 def fcm_init(filename: Path) -> None:
     """Initialise messaging app from service accout key data JSON file"""
@@ -229,16 +237,8 @@ def main():
                         print(f"=== {filename} ===\n")
 
                     for notification in notifications:
-                        recipient = notification["recipient"]
-                        message = notification["message"]
-
-                        print(
-                            # fmt: off
-                            f"*** {recipient} ***\n",
-                            f"{message.callsign} {message.reg}".strip(), "\n",
-                            f"{message.location}",
-                            # fmt: on
-                        )
+                        print(f"*** {notification['recipient']} ***")
+                        print(notification["message"])
                 else:
                     for notification in notifications:
                         fcm_send(notification["recipient"], notification["message"])
