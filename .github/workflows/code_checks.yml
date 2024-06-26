@@ -18,6 +18,7 @@ jobs:
         os: [ ubuntu-20.04, ubuntu-22.04, windows-latest ]
         python-version: ["3.9", "3.10", "3.11"]
     runs-on: ${{ matrix.os }}
+    environment: ci
 
     steps:
       - uses: actions/checkout@v3
@@ -30,7 +31,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install black pylint pytest
           pip install -r requirements.txt
-      - name: Lint wit pylint
+      - name: Lint with pylint
         env:
           PYTHONPATH: ${GITHUB_WORKSPACE}
         run: |
@@ -41,3 +42,5 @@ jobs:
       - name: Test with pytest
         run: |
           python -m pytest
+        env:
+          HEMS_LOOKOUT_FCM_AUTH_STR: ${{ secrets.HEMS_LOOKOUT_FCM_AUTH_STR }}

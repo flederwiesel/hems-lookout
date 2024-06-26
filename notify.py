@@ -5,13 +5,15 @@ towards one of the user defined destinations within a certain distance.
 """
 
 import argparse
+import os
 import sys
 import json
-import os
-import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import messaging  # pylint: disable=unused-import
 from gcmath import (
     LatLon,
     calc_bearing,
@@ -74,10 +76,50 @@ class Message:
 
     def __init__(self, **kwargs):
         self.timestamp = datetime.now().isoformat(timespec="seconds")
-        self.icao = kwargs["icao"]
         self.reg = kwargs["reg"]
         self.callsign = kwargs["callsign"]
         self.location = kwargs["location"]
+        self.href = kwargs["href"]
+
+
+def fcm_init(filename: Path) -> None:
+    """Initialise messaging app from service accout key data JSON file"""
+    firebase_admin.initialize_app(credentials.Certificate(filename))
+
+
+def fcm_terminate() -> None:
+    """Release internal app object. Only for testing."""
+    firebase_admin.delete_app(firebase_admin.get_app())
+
+
+def fcm_send(recipient: str, message: Message, dry_run=False) -> None:
+    """Send a notification via Firebase Cloud Messaging"""
+
+    try:
+        # https://firebase.google.com/docs/reference/admin/python/firebase_admin.messaging
+        message = firebase_admin.messaging.Message(
+            token=recipient,
+            notification=None,
+            data=message.__dict__,
+        )
+
+        firebase_admin.messaging.send(message, dry_run)
+
+    except firebase_admin.exceptions.NotFoundError:
+        print(
+            f"firebase_admin.messaging.send: Token '{recipient}' not found.",
+            file=sys.stderr,
+        )
+    except firebase_admin.exceptions.FirebaseError as ex:
+        print(
+            f"firebase_admin.messaging.send: "
+            f"{ex.code if ex.code else 'UNKNOWN CODE'} "
+            f"{ex.cause if ex.cause else 'UNKNOWN CAUSE'}"
+            f"{' '+ ex.http_response if ex.http_response else ''}",
+            file=sys.stderr,
+        )
+    except ValueError as ex:
+        print(f"firebase_admin.messaging.send: {ex}", file=sys.stderr)
 
 
 def isnotifyable(state: AicraftState, poi: LatLon) -> bool:
@@ -102,8 +144,6 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
     user locations by calculating bearing and distance for each combination.
     Return a list of notifications"""
 
-    # pylint: disable=redefined-outer-name
-    # pylint: disable=too-many-locals
     # pylint: disable=too-many-nested-blocks
 
     notifications = []
@@ -119,6 +159,17 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                     location, poi = loc["name"], LatLon(loc["lat"], loc["lon"])
 
                     if isnotifyable(state, poi):
+                        if state.callsign is None and state.reg is None:
+                            # class AicraftState makes sure that icao is not None now
+                            state.callsign = state.icao
+
+                        # Simply move map to position, if icao is unknown
+                        qsa = (
+                            f"icao={state.icao}"
+                            if state.icao
+                            else f"lat={state.pos.lat}&lon={state.pos.lon}"
+                        )
+
                         notifications.append(
                             {
                                 "recipient": recipient,
@@ -126,7 +177,7 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                                     location=location,
                                     callsign=state.callsign,
                                     reg=state.reg,
-                                    icao=state.icao,
+                                    href=f"https://globe.adsbexchange.com/?{qsa}",
                                 ),
                             }
                         )
@@ -138,10 +189,14 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
     return notifications
 
 
-if __name__ == "__main__":
+def main():
+    """Place Chuck Norris joke here..."""
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-c", "--stdout", action="store_true")
+    parser.add_argument("-D", "--dry-run", action="store_true")
+    parser.add_argument("--fcm-credentials", type=Path, required=False, default=None)
 
     args, leftover = parser.parse_known_args()
 
@@ -151,6 +206,18 @@ if __name__ == "__main__":
 
         with open(filename, "r", encoding="utf-8") as file:
             settings = json.load(file)
+
+        if not args.stdout:
+            filename = (
+                args.fcm_credentials
+                if args.fcm_credentials
+                else os.getenv(
+                    "HEMS_LOOKOUT_FCM_AUTH",
+                    default=Path().home() / "hems-lookout-fcm.json",
+                )
+            )
+
+            fcm_init(filename)
 
         for filename in leftover:
             with open(filename, "r", encoding="utf-8") as file:
@@ -174,20 +241,14 @@ if __name__ == "__main__":
                         )
                 else:
                     for notification in notifications:
-                        subprocess.call(
-                            [
-                                "signal-cli",
-                                "send",
-                                "-m",
-                                notification["message"],
-                                notification["recipient"],
-                            ],
-                            stdout=subprocess.DEVNULL,
-                            timeout=15,
-                        )
+                        fcm_send(notification["recipient"], notification["message"])
 
     except FileNotFoundError as exception:
         print(f"{exception}", file=sys.stderr)
 
     except json.JSONDecodeError as exception:
         print(f"'{filename}': {exception}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

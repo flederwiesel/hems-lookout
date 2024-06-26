@@ -3,6 +3,7 @@ around the boeder of the default radius"""
 
 from pathlib import Path
 import json
+import os
 import pytest
 import notify
 from gcmath import LatLon, calc_distance
@@ -12,7 +13,7 @@ BGU = LatLon(49.4865293, 8.3892454)
 
 USER_SETTINGS = [
     {
-        "recipient": "+49**********",
+        "recipient": "fcm_token",
         "locations": [
             {
                 "name": "BGU Ludwigshafen",
@@ -33,6 +34,25 @@ def fixture_adb_from_json(filename):
         adsb = json.load(file)
 
     return adsb["states"]
+
+
+@pytest.fixture(name="fcm_auth_json")
+def fixture_fcm_auth_json(tmp_path):
+    """Create file from HEMS_LOOKOUT_FCM_AUTH_STR environment variable, if exists,
+    otherwise provide content of HEMS_LOOKOUT_FCM_AUTH.
+    """
+
+    credentials = os.getenv("HEMS_LOOKOUT_FCM_AUTH_STR")
+
+    if credentials:
+        filename = tmp_path / "hems_lookout_fcm_auth.json"
+
+        with open(filename, "w", encoding="utf-8") as file:
+            file.write(credentials)
+    else:
+        filename = os.getenv("HEMS_LOOKOUT_FCM_AUTH")
+
+    return filename
 
 
 @pytest.mark.parametrize("filename", ["test_notify_distance.json"])
@@ -105,3 +125,60 @@ def test_bearing_non_notifyable(adsb_data):
 
     notifications = notify.get_notifications(adsb_data, USER_SETTINGS)
     assert len(notifications) == 0
+
+
+def test_fcm_send_no_init(capsys):
+    """fcm_send() must report no default firebase app without firebase init"""
+
+    notify.fcm_send(
+        "invalid",
+        notify.Message(
+            reg="D-H???", callsign="CHX666", location="Somewhere", href="https://foo"
+        ),
+        dry_run=True,
+    )
+
+    assert capsys.readouterr().err.startswith(
+        "firebase_admin.messaging.send: The default Firebase app does not exist."
+    )
+
+
+def test_fcm_send_invalid_token(fcm_auth_json, capsys):
+    """fcm_send() must report INVALID_ARGUMENT with invalid token"""
+
+    assert fcm_auth_json
+
+    notify.fcm_init(fcm_auth_json)
+    notify.fcm_send(
+        "***invalid***",
+        notify.Message(
+            reg="D-H???", callsign="CHX666", location="Somewhere", href="https://foo"
+        ),
+        dry_run=True,
+    )
+
+    notify.fcm_terminate()
+
+    assert capsys.readouterr().err.startswith(
+        "firebase_admin.messaging.send: INVALID_ARGUMENT 400 Client Error: Bad Request"
+    )
+
+
+def test_fcm_send(fcm_auth_json, capsys):
+    """fcm_send() must succeed with this token."""
+
+    assert fcm_auth_json
+
+    notify.fcm_init(fcm_auth_json)
+    notify.fcm_send(
+        "dJOOeRzHQYGo6wvbmqRgxs:APA91bHs7rWx0_r2yJzEM8Go6ulUMi9yTRt87XQ0i6BufZdrfR6c6VIQPli"
+        "wDH_iOC_JQ8lXPAc9o11cO776DMJp7ui9MlosiOuzVRiekJc3NqZTEf5XOBxlKrB21YXT3vjVHdHpgdp1",
+        notify.Message(
+            reg="D-H???", callsign="CHX666", location="Somewhere", href="https://foo"
+        ),
+        dry_run=True,
+    )
+
+    notify.fcm_terminate()
+
+    assert 0 == len(capsys.readouterr().err)

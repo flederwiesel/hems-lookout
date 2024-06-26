@@ -9,5 +9,6 @@ rsync -av "$SCRIPTDIR/" flugplan@fra-flugplan.de:hems-lookout \
 	--filter='+ install.sh' \
 	--filter='+ notify.py' \
 	--filter='+ query-adsb.sh' \
+	--filter='+ requirements.txt' \
 	--filter='- *' \
 	"$@"
