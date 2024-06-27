@@ -127,8 +127,8 @@ def fcm_send(recipient: str, message: Message, dry_run=False) -> None:
         )
         logging.error(msg)
         fcmlog.error("! %s", msg)
-    except ValueError as ex:
-        fcmlog.error("! %s", ex)
+    # pylint: disable=broad-exception-caught
+    except Exception as ex:
         logging.error("%s", ex)
         fcmlog.error("! %s", ex)
 
