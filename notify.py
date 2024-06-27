@@ -6,8 +6,8 @@ towards one of the user defined destinations within a certain distance.
 
 import argparse
 import os
-import sys
 import json
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -114,20 +114,16 @@ def fcm_send(recipient: str, message: Message, dry_run=False) -> None:
         firebase_admin.messaging.send(message, dry_run)
 
     except firebase_admin.exceptions.NotFoundError:
-        print(
-            f"firebase_admin.messaging.send: Token '{recipient}' not found.",
-            file=sys.stderr,
-        )
+        logging.warning("Token '%s' not found.", recipient)
     except firebase_admin.exceptions.FirebaseError as ex:
-        print(
-            f"firebase_admin.messaging.send: "
-            f"{ex.code if ex.code else 'UNKNOWN CODE'} "
-            f"{ex.cause if ex.cause else 'UNKNOWN CAUSE'}"
-            f"{' '+ ex.http_response if ex.http_response else ''}",
-            file=sys.stderr,
+        logging.error(
+            "%s: %s%s",
+            ex.code if ex.code else "UNKNOWN CODE",
+            ex.cause if ex.cause else "UNKNOWN CAUSE",
+            ": " + ex.http_response.replace("\n", "\\n") if ex.http_response else "",
         )
     except ValueError as ex:
-        print(f"firebase_admin.messaging.send: {ex}", file=sys.stderr)
+        logging.error("%s", ex)
 
 
 def isnotifyable(state: AicraftState, poi: LatLon) -> bool:
@@ -190,9 +186,9 @@ def get_notifications(data: list[list], settings: list[dict]) -> list[dict]:
                             }
                         )
         except InsufficientData:
-            print("InsufficientData: %s", json.dumps(state))
+            logging.debug("InsufficientData: %s", json.dumps(state))
         except ValueError as exception:
-            print(f"{exception}: {state}", file=sys.stderr)
+            logging.error("%s: %s", exception, state)
 
     return notifications
 
@@ -203,10 +199,14 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-c", "--stdout", action="store_true")
+    parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("-D", "--dry-run", action="store_true")
     parser.add_argument("--fcm-credentials", type=Path, required=False, default=None)
 
     args, leftover = parser.parse_known_args()
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     try:
         homedir = Path(os.getenv("HOME", os.getenv("USERPROFILE")))
@@ -244,11 +244,16 @@ def main():
                         fcm_send(notification["recipient"], notification["message"])
 
     except FileNotFoundError as exception:
-        print(f"{exception}", file=sys.stderr)
+        logging.error("'%s': %s", filename, exception)
 
     except json.JSONDecodeError as exception:
-        print(f"'{filename}': {exception}", file=sys.stderr)
+        logging.error("'%s': %s", filename, exception)
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(filename)s(%(lineno)d): %(message)s",
+)
 
 if __name__ == "__main__":
     main()

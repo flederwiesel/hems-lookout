@@ -3,6 +3,7 @@ around the boeder of the default radius"""
 
 from pathlib import Path
 import json
+import logging
 import os
 import pytest
 import notify
@@ -127,8 +128,10 @@ def test_bearing_non_notifyable(adsb_data):
     assert len(notifications) == 0
 
 
-def test_fcm_send_no_init(capsys):
+def test_fcm_send_no_init(caplog):
     """fcm_send() must report no default firebase app without firebase init"""
+
+    caplog.set_level(logging.ERROR)
 
     notify.fcm_send(
         "invalid",
@@ -138,15 +141,15 @@ def test_fcm_send_no_init(capsys):
         dry_run=True,
     )
 
-    assert capsys.readouterr().err.startswith(
-        "firebase_admin.messaging.send: The default Firebase app does not exist."
-    )
+    assert "The default Firebase app does not exist." in caplog.text
 
 
-def test_fcm_send_invalid_token(fcm_auth_json, capsys):
+def test_fcm_send_invalid_token(fcm_auth_json, caplog):
     """fcm_send() must report INVALID_ARGUMENT with invalid token"""
 
     assert fcm_auth_json
+
+    caplog.set_level(logging.ERROR)
 
     notify.fcm_init(fcm_auth_json)
     notify.fcm_send(
@@ -159,15 +162,15 @@ def test_fcm_send_invalid_token(fcm_auth_json, capsys):
 
     notify.fcm_terminate()
 
-    assert capsys.readouterr().err.startswith(
-        "firebase_admin.messaging.send: INVALID_ARGUMENT 400 Client Error: Bad Request"
-    )
+    assert "INVALID_ARGUMENT: 400 Client Error: Bad Request for url" in caplog.text
 
 
-def test_fcm_send(fcm_auth_json, capsys):
+def test_fcm_send(fcm_auth_json, caplog):
     """fcm_send() must succeed with this token."""
 
     assert fcm_auth_json
+
+    caplog.set_level(logging.ERROR)
 
     notify.fcm_init(fcm_auth_json)
     notify.fcm_send(
@@ -181,4 +184,4 @@ def test_fcm_send(fcm_auth_json, capsys):
 
     notify.fcm_terminate()
 
-    assert 0 == len(capsys.readouterr().err)
+    assert 0 == len(caplog.text)
