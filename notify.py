@@ -105,25 +105,32 @@ def fcm_send(recipient: str, message: Message, dry_run=False) -> None:
 
     try:
         # https://firebase.google.com/docs/reference/admin/python/firebase_admin.messaging
-        message = firebase_admin.messaging.Message(
+        wrap = firebase_admin.messaging.Message(
             token=recipient,
             notification=None,
             data=message.__dict__,
         )
 
-        firebase_admin.messaging.send(message, dry_run)
+        fcmlog.info("? %s", message)
+        firebase_admin.messaging.send(wrap, dry_run)
+        fcmlog.info("=")
 
     except firebase_admin.exceptions.NotFoundError:
-        logging.warning("Token '%s' not found.", recipient)
+        msg = f"Token '{recipient}' not found."
+        logging.warning(msg)
+        fcmlog.warning("! %s", msg)
     except firebase_admin.exceptions.FirebaseError as ex:
-        logging.error(
-            "%s: %s%s",
-            ex.code if ex.code else "UNKNOWN CODE",
-            ex.cause if ex.cause else "UNKNOWN CAUSE",
-            ": " + ex.http_response.replace("\n", "\\n") if ex.http_response else "",
+        msg = (
+            f"{ex.code if ex.code else 'UNKNOWN CODE'}: "
+            f"{ex.cause if ex.cause else 'UNKNOWN CAUSE'}: "
+            f"{ex.http_response if ex.http_response else ''}"
         )
+        logging.error(msg)
+        fcmlog.error("! %s", msg)
     except ValueError as ex:
+        fcmlog.error("! %s", ex)
         logging.error("%s", ex)
+        fcmlog.error("! %s", ex)
 
 
 def isnotifyable(state: AicraftState, poi: LatLon) -> bool:
@@ -250,10 +257,25 @@ def main():
         logging.error("'%s': %s", filename, exception)
 
 
+class FoldLinesFormatter(logging.Formatter):
+    """Formatter that folds lines by replacing all newline characters in a log message"""
+
+    def format(self, record: logging.LogRecord) -> str:
+        return super().format(record).replace("\n", " ")
+
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(filename)s(%(lineno)d): %(message)s",
 )
+
+handler = logging.FileHandler(Path.home() / "hems-lookout.log")
+handler.setFormatter(FoldLinesFormatter(fmt="%(asctime)s %(message)s"))
+
+fcmlog = logging.getLogger("fcmlog")
+fcmlog.addHandler(handler)
+fcmlog.setLevel(logging.DEBUG)
+fcmlog.propagate = False
 
 if __name__ == "__main__":
     main()
