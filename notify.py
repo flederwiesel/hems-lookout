@@ -248,7 +248,11 @@ def main():
                         print(notification["message"])
                 else:
                     for notification in notifications:
-                        fcm_send(notification["recipient"], notification["message"], args.dry_run)
+                        fcm_send(
+                            notification["recipient"],
+                            notification["message"],
+                            args.dry_run,
+                        )
 
     except FileNotFoundError as exception:
         logging.error("'%s': %s", filename, exception)
