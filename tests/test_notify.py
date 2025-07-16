@@ -6,6 +6,8 @@ import json
 import logging
 import os
 import pytest
+from requests.exceptions import HTTPError
+import firebase_admin
 import notify
 from gcmath import LatLon, calc_distance
 
@@ -24,6 +26,88 @@ USER_SETTINGS = [
         ],
     }
 ]
+
+
+class MockFirebaseAdmin:
+    """A class mocking the essentials of firebase_admin"""
+
+    _DEFAULT_APP_NAME = "[DEFAULT]"
+
+    def __init__(self):
+        self.app = None
+
+    def initialize_app(
+        self,
+        credential=None,  # pylint: disable=unused-argument
+        name: str = _DEFAULT_APP_NAME,
+    ):
+        """Set app name, so messaging.send() can raise, if no initialize_app() called"""
+        self.app = name
+
+    def delete_app(self, name=_DEFAULT_APP_NAME):
+        """Actually not used, just here for completeness"""
+        if self.app == name:
+            self.app = None
+        else:
+            raise ValueError(
+                (
+                    f"Firebase app named '{name}' is not initialized. Make sure to initialize "
+                    "the app by calling initialize_app() with your app name as the "
+                    "second argument."
+                )
+            )
+
+    def get_app(self, name: str = _DEFAULT_APP_NAME):  # pylint: disable=unused-argument
+        """Return app name to check whether initialize_app() has been called"""
+        return self.app
+
+    class messaging:  # pylint: disable=invalid-name,too-few-public-methods
+        """Mock the messaging subclass"""
+
+        @classmethod
+        def send(
+            cls,
+            message: firebase_admin.messaging.Message,
+            dry_run: bool = False,  # pylint: disable=unused-argument
+            name=None,
+        ):
+            """Simple send mock, raising if app has not been initialized
+            or the token is ***invalid***"""
+            app = firebase_admin.get_app()
+
+            if not app:
+                if name:
+                    raise ValueError(
+                        (
+                            f"Firebase app named '{name}' does not exist. Make sure to initialize "
+                            "the SDK by calling initialize_app() with your app name as the "
+                            "second argument."
+                        )
+                    )
+                raise ValueError(
+                    "The default Firebase app does not exist. Make sure to initialize "
+                    "the SDK by calling initialize_app()."
+                )
+
+            if message.token == "***invalid***":
+                raise firebase_admin.exceptions.InvalidArgumentError(
+                    message="The registration token is not a valid FCM registration token",
+                    cause=HTTPError(
+                        "400 Client Error: Bad Request for url: https://..."
+                    ),
+                )
+
+            return "projects/hems-lookout/messages/fake_message_id"
+
+
+@pytest.fixture(name="mock_firebase_admin")
+def fixture_mock_firebase_admin(monkeypatch):
+    """Fixture patching firebase_admin to MockFirebaseAdmin()"""
+    mock = MockFirebaseAdmin()
+    monkeypatch.setattr(firebase_admin, "initialize_app", mock.initialize_app)
+    monkeypatch.setattr(firebase_admin, "delete_app", mock.delete_app)
+    monkeypatch.setattr(firebase_admin, "get_app", mock.get_app)
+    monkeypatch.setattr(firebase_admin.messaging, "send", mock.messaging.send)
 
 
 @pytest.fixture(name="adsb_data")
@@ -128,7 +212,9 @@ def test_bearing_non_notifyable(adsb_data):
     assert len(notifications) == 0
 
 
-def test_fcm_send_no_init(caplog):
+def test_fcm_send_no_init(
+    mock_firebase_admin, caplog  # pylint: disable=unused-argument
+):
     """fcm_send() must report no default firebase app without firebase init"""
 
     caplog.set_level(logging.ERROR)
@@ -144,7 +230,9 @@ def test_fcm_send_no_init(caplog):
     assert "The default Firebase app does not exist." in caplog.text
 
 
-def test_fcm_send_invalid_token(fcm_auth_json, caplog):
+def test_fcm_send_invalid_token(
+    fcm_auth_json, mock_firebase_admin, caplog  # pylint: disable=unused-argument
+):
     """fcm_send() must report INVALID_ARGUMENT with invalid token"""
 
     assert fcm_auth_json
@@ -165,7 +253,9 @@ def test_fcm_send_invalid_token(fcm_auth_json, caplog):
     assert "INVALID_ARGUMENT: 400 Client Error: Bad Request for url" in caplog.text
 
 
-def test_fcm_send(fcm_auth_json, caplog):
+def test_fcm_send(
+    fcm_auth_json, mock_firebase_admin, caplog  # pylint: disable=unused-argument
+):
     """fcm_send() must succeed with this token."""
 
     assert fcm_auth_json
