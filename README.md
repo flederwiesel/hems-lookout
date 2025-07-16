@@ -56,6 +56,31 @@ To configure Google Service Accounts and permissions, see the
     ]
     ```
 
+* `serviceAccount.json`
+
+    Service account authentication config.
+
+    Format is like:
+
+    ```
+    {
+        "type": "service_account",
+        "project_id": "hems-lookout",
+        "private_key_id": "4242424242424242424242424242424242424242",
+        "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+        "client_email": "example@hems-lookout.iam.gserviceaccount.com",
+        "client_id": "000000000000000000000",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40hems-lookout.iam.gserviceaccount.com",
+        "universe_domain": "googleapis.com"
+    }
+    ```
+
+    Manage service accounts in the
+    [Google Cloud Console](https://console.cloud.google.com/iam-admin/serviceaccounts?project=hems-lookout)
+
 * `gcmath.py`
 
     Module defining LatLon classs and great circle calculations.
@@ -83,3 +108,4 @@ To configure Google Service Accounts and permissions, see the
 
     For testing, specify Firebase service account data as string. Required by
     `test_notify.py`, to create the service account file from a secret.
+    Takes precedence over `HEMS_LOOKOUT_FCM_AUTH`.
