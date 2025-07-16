@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "notify",
+            "type": "python",
+            "request": "launch",
+            "justMyCode": true,
+            "program": "${workspaceFolder}/notify.py",
+            "env":{
+                // `HEMS_LOOKOUT_FCM_AUTH(_STR)?` is expected to be set
+            },
+            "args": [
+                // "--stdout",
+                // "--dry-run",
+                "--fcm-credentials", "${userHome}/hems-lookout-fcm.json",
+                "${workspaceFolder}/tests/test_notify_distance.json"
+            ]
+        },
+        {
+            "name": "pytest",
+            "type": "python",
+            "request": "launch",
+            "justMyCode": true,
+            "module": "pytest",
+            "env": {
+                "HEMS_LOOKOUT_FCM_AUTH": "${workspaceFolder}/serviceAccount.json",
+                "HEMS_LOOKOUT_FCM_AUTH_STR": ""
+            },
+            "args": [
+                // "-k", "expression"
+            ]
+        }
+    ]
+}
