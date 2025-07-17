@@ -83,9 +83,15 @@ def create_protractor_image(filename: Path, cx: int, cy: int):
         subprocess.run(cmdline, check=True)
 
 
-# pylint: disable=too-many-arguments,redefined-outer-name
+# pylint: disable=too-many-arguments,too-many-positional-arguments,redefined-outer-name
 def create_test_image(
-    filename: Path, grid: Path, cx: int, cy: int, track: int, bearing: int
+    filename: Path,
+    grid: Path,
+    cx: int,
+    cy: int,
+    track: int,
+    bearing: int,
+    deviation: float,
 ):
     """Create image with track/bearing based on protractor, illustrating the
     test cases. When track and bearing are <= 5 degrees apart, notifications
@@ -266,6 +272,7 @@ if "__main__" == __name__:
                 CY,
                 track,
                 bearing,
+                deviation,
             )
 
         reverse = bearing
