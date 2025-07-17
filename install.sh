@@ -45,9 +45,7 @@ fi
 readonly SCRIPTDIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 
 # Setup venv
-python3 -m venv "$SCRIPTDIR/.venv"
-"$SCRIPTDIR/.venv/bin/python" -m pip install --upgrade pip
-"$SCRIPTDIR/.venv/bin/python" -m pip install --requirement "$SCRIPTDIR/requirements.txt"
+uv sync
 
 # Adjust crontab
 crontab < <(

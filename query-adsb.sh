@@ -68,7 +68,7 @@ jq '{
 }' "$ADSB/${d}/${d}_${t}.json" \
 >  "$HEMS/${d}/${d}_${t}.json"
 
-"$SCRIPTDIR/.venv/bin/python" "$SCRIPTDIR/notify.py" "$HEMS/${d}/${d}_${t}.json"
+uv run "$SCRIPTDIR/notify.py" "$HEMS/${d}/${d}_${t}.json"
 
 # Compress original JSON
 xz -z9 "$ADSB/${d}/${d}_${t}.json"
