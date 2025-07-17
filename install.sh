@@ -46,6 +46,7 @@ readonly SCRIPTDIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 
 # Setup venv
 uv sync
+uv run pyinstaller notify.spec
 
 # Adjust crontab
 crontab < <(

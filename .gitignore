@@ -1,4 +1,6 @@
-.pytest_cache
-.venv*
+.pytest_cache/
+.venv*/
 __pycache__
+build/
+dist/
 tests/img/bearing/

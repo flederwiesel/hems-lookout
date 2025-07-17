@@ -111,7 +111,7 @@ def fixture_mock_firebase_admin(monkeypatch):
 
 
 @pytest.fixture(name="adsb_data")
-def fixture_adb_from_json(filename):
+def fixture_adsb_from_json(filename):
     """Read ADB-B data from json file"""
     scriptdir = Path(__file__).parent
 

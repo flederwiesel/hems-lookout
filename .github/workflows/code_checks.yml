@@ -49,3 +49,7 @@ jobs:
           uv run pytest
         env:
           HEMS_LOOKOUT_FCM_AUTH_STR: ${{ secrets.HEMS_LOOKOUT_FCM_AUTH_STR }}
+
+      - name: Build standalone executable
+        run: |
+          uv run pyinstaller notify.spec
